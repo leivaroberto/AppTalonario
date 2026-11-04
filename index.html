@@ -1,0 +1,1952 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17243a">
+  <title>Talonario — diseñador e impresión</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      color: #17243a;
+      background: #f3f5f9;
+      font-synthesis: none;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+
+    .topbar {
+      height: 66px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 24px;
+      color: #fff;
+      background: #17243a;
+      box-shadow: 0 2px 12px #17243a24;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-mark {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border-radius: 10px;
+      color: #17243a;
+      background: #8fe1c2;
+      font-size: 19px;
+      font-weight: 800;
+    }
+    .brand-title { font-size: 16px; font-weight: 750; letter-spacing: .01em; }
+    .brand-subtitle { margin-top: 2px; color: #aeb9ca; font-size: 11px; }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+    .top-actions button {
+      min-height: 36px;
+      padding: 0 13px;
+      border: 1px solid #536078;
+      border-radius: 7px;
+      color: #edf2fb;
+      background: transparent;
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .top-actions button:hover { background: #ffffff14; }
+    .top-actions .primary {
+      border-color: #8fe1c2;
+      color: #142a2a;
+      background: #8fe1c2;
+    }
+    .top-actions .primary:hover { background: #a7efd3; }
+
+    .app {
+      display: grid;
+      grid-template-columns: minmax(285px, 342px) minmax(0, 1fr);
+      min-height: calc(100vh - 66px);
+    }
+    .sidebar {
+      padding: 19px 16px 30px;
+      border-right: 1px solid #e0e5ee;
+      background: #fff;
+      overflow: auto;
+    }
+    .panel { padding: 0 0 18px; margin-bottom: 17px; border-bottom: 1px solid #e8ecf2; }
+    .panel:last-child { border-bottom: 0; }
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 0 12px;
+      color: #27354b;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .field { display: block; margin: 10px 0; }
+    .field > span, .field-label {
+      display: block;
+      margin-bottom: 5px;
+      color: #5e6b7f;
+      font-size: 11px;
+      font-weight: 650;
+    }
+    .field input:not([type="checkbox"]):not([type="color"]),
+    .field select, .field textarea {
+      width: 100%;
+      height: 36px;
+      padding: 0 10px;
+      border: 1px solid #d9e0ea;
+      border-radius: 7px;
+      outline: 0;
+      color: #233149;
+      background: #fff;
+      font-size: 12px;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: #4a9e85; box-shadow: 0 0 0 3px #4a9e8517; }
+    .field textarea { height: 66px; padding: 9px 10px; resize: vertical; }
+    .field input[type="range"] { width: 100%; accent-color: #25866b; }
+    .file-picker {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 38px;
+    }
+    .file-picker-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 35px;
+      padding: 0 11px;
+      border: 1px solid #c4e7d9;
+      border-radius: 7px;
+      color: #216d58;
+      background: #effaf5;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .file-picker-name {
+      overflow: hidden;
+      margin: 0 !important;
+      color: #8792a3 !important;
+      font-size: 11px !important;
+      font-weight: 500 !important;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .file-picker:focus-within .file-picker-button {
+      outline: 0;
+      box-shadow: 0 0 0 3px #4a9e8517;
+    }
+    .file-picker input[type="file"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .field input[type="color"] {
+      width: 42px;
+      height: 34px;
+      padding: 3px;
+      border: 1px solid #d9e0ea;
+      border-radius: 7px;
+      background: #fff;
+    }
+    .row { display: flex; gap: 9px; }
+    .row > .field { flex: 1; min-width: 0; }
+    .check-row { display: flex; align-items: center; gap: 8px; margin: 10px 0; color: #526075; font-size: 12px; }
+    .check-row input { accent-color: #25866b; }
+    .hint { margin: 6px 0 0; color: #8792a3; font-size: 10px; line-height: 1.45; }
+    .btn {
+      min-height: 35px;
+      padding: 0 11px;
+      border: 1px solid #d8e0e9;
+      border-radius: 7px;
+      color: #33445d;
+      background: #fff;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .btn:hover { border-color: #96b5aa; background: #f6fbf9; }
+    .btn-green { border-color: #c4e7d9; color: #216d58; background: #effaf5; }
+    .btn-red { color: #b34242; }
+    .button-row { display: flex; gap: 7px; flex-wrap: wrap; }
+    .button-row .btn { flex: 1; }
+    .shape-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 10px; }
+    .shape-button { display: grid; justify-items: center; gap: 4px; min-height: 53px; padding: 6px 3px; border: 1px solid #dfe5ed; border-radius: 7px; color: #536176; background: #fbfcfe; font-size: 10px; }
+    .shape-button:hover { border-color: #9dc9b8; color: #216d58; background: #f2faf6; }
+    .shape-button svg { width: 25px; height: 21px; overflow: visible; }
+    .shape-button svg * { fill: none; stroke: currentColor; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+    .segmented { display: flex; padding: 3px; border: 1px solid #d9e0ea; border-radius: 8px; background: #f6f8fb; }
+    .segmented button {
+      flex: 1;
+      min-height: 30px;
+      border: 0;
+      border-radius: 5px;
+      color: #69768a;
+      background: transparent;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .segmented button.active { color: #205b4a; background: #fff; box-shadow: 0 1px 4px #17243a18; }
+    .selected-empty {
+      padding: 10px;
+      border-radius: 7px;
+      color: #8390a3;
+      background: #f6f8fb;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+    .selected-editor {
+      padding: 15px 0 0;
+      margin: 14px 0 0;
+      border-top: 1px solid #e8ecf2;
+    }
+    .selected-editor .panel-title { margin-bottom: 10px; }
+    .editor-actions { justify-content: flex-end; }
+    .editor-actions .btn { flex: 0 1 auto; }
+    .hidden { display: none !important; }
+    .workspace { min-width: 0; padding: 24px clamp(16px, 3vw, 42px) 36px; }
+    .workspace-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 210px;
+      gap: 18px;
+      max-width: 1420px;
+      margin: 0 auto;
+      align-items: start;
+    }
+    .workspace-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 0 auto 17px;
+    }
+    h1 { margin: 0; font-size: 20px; letter-spacing: -.025em; }
+    .workspace-head p { margin: 5px 0 0; color: #778398; font-size: 12px; }
+    .status { max-width: 48%; color: #658073; font-size: 11px; text-align: right; }
+    .status.error { color: #bb4444; }
+    .work-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(200px, .75fr); gap: 18px; align-items: start; }
+    .work-card {
+      padding: 17px;
+      border: 1px solid #e2e7ef;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 4px 16px #23314908;
+    }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+    .card-head strong { font-size: 12px; }
+    .card-head span { color: #8591a3; font-size: 10px; }
+    .artboard-wrap { overflow: auto; padding: 5px; background: #f1f3f7; border-radius: 8px; }
+    .artboard {
+      position: relative;
+      width: 100%;
+      min-width: 430px;
+      aspect-ratio: 10 / 3;
+      overflow: hidden;
+      margin: 0 auto;
+      background-color: #fff;
+      background-image: linear-gradient(45deg, #f8f9fb 25%, transparent 25%), linear-gradient(-45deg, #f8f9fb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f8f9fb 75%), linear-gradient(-45deg, transparent 75%, #f8f9fb 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+      box-shadow: 0 2px 7px #26334b1c;
+      touch-action: none;
+    }
+    .artboard.has-background { background-image: none; }
+    .artboard-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; user-select: none; }
+    .empty-board {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      gap: 7px;
+      color: #8b96a7;
+      text-align: center;
+      pointer-events: none;
+    }
+    .empty-board b { color: #55647a; font-size: 13px; }
+    .empty-board span { font-size: 11px; }
+    .design-object {
+      position: absolute;
+      z-index: 1;
+      display: block;
+      cursor: move;
+      touch-action: none;
+      user-select: none;
+    }
+    .design-object.selected { outline: 1px dashed #18886b; outline-offset: 3px; }
+    .design-object.number, .design-object.text {
+      width: max-content;
+      max-width: 95%;
+      white-space: pre;
+      line-height: 1.12;
+    }
+    .design-object img { display: block; width: 100%; height: 100%; object-fit: fill; pointer-events: none; }
+    .design-object svg { display: block; width: 100%; height: 100%; pointer-events: none; }
+    .resize-handle {
+      position: absolute;
+      right: -6px;
+      bottom: -6px;
+      width: 11px;
+      height: 11px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: #18886b;
+      cursor: nwse-resize;
+    }
+    .canvas-foot { display: flex; justify-content: space-between; gap: 10px; margin-top: 10px; color: #8994a4; font-size: 10px; }
+    .paper {
+      position: relative;
+      width: 100%;
+      max-width: 230px;
+      aspect-ratio: 210 / 297;
+      margin: 10px auto 13px;
+      overflow: hidden;
+      border: 1px solid #dce2eb;
+      background: #fff;
+      box-shadow: 0 3px 11px #26334b16;
+    }
+    .paper-grid { position: absolute; left: 6.35%; top: 5.05%; width: 87.3%; height: 89.9%; display: grid; align-content: start; justify-content: center; overflow: hidden; }
+    .paper-slot { position: relative; overflow: visible; border: 1px dashed #bcc6d4; background: #fafbfd; }
+    .paper-slot .slip-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
+    .paper-slot-object { position: absolute; overflow: hidden; }
+    .paper-slot-object img { width: 100%; height: 100%; object-fit: fill; }
+    .paper-slot-object svg { display: block; width: 100%; height: 100%; }
+    .capacity { padding: 10px; border-radius: 7px; color: #486756; background: #eff8f3; font-size: 11px; line-height: 1.55; }
+    .capacity b { color: #24543f; }
+    .legend { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 11px; color: #8490a2; font-size: 10px; }
+    .legend span::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #16866a; }
+    .note { padding: 9px 10px; border-left: 3px solid #edc875; border-radius: 4px; color: #786848; background: #fffaf0; font-size: 10px; line-height: 1.45; }
+    .decor-panel {
+      position: sticky;
+      top: 16px;
+      max-height: calc(100vh - 98px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+    }
+    .decor-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .decor-filter { margin: 0 0 11px; }
+    .decor-item {
+      display: grid;
+      gap: 5px;
+      justify-items: center;
+      min-width: 0;
+      padding: 9px 5px 7px;
+      border: 1px solid #e1e7ef;
+      border-radius: 9px;
+      color: #5d6b7e;
+      background: #fbfcfe;
+      font-size: 10px;
+      font-weight: 650;
+    }
+    .decor-item:hover { transform: translateY(-1px); border-color: #9dc9b8; background: #f2faf6; }
+    .decor-item img { width: 43px; height: 43px; object-fit: contain; }
+    .decor-upload { width: 100%; margin-top: 11px; }
+    .decor-hint { margin: 9px 0 0; color: #8490a2; font-size: 10px; line-height: 1.45; }
+
+    #print-root { display: none; }
+    @media (max-width: 1150px) {
+      .workspace-layout { grid-template-columns: minmax(0, 1fr); }
+      .decor-panel { position: static; max-height: 360px; }
+      .decor-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    @media (max-width: 1050px) {
+      .work-grid { grid-template-columns: minmax(0, 1fr); }
+      .work-card.sheet-card { max-width: 500px; }
+      .paper { max-width: 180px; }
+    }
+    @media (max-width: 720px) {
+      .topbar { height: auto; min-height: 60px; padding: 10px 13px; flex-wrap: wrap; }
+      .top-actions { width: 100%; overflow-x: auto; }
+      .top-actions button { flex: 1; white-space: nowrap; }
+      .app { grid-template-columns: 1fr; }
+      .sidebar { order: 2; border-top: 1px solid #e0e5ee; border-right: 0; }
+      .workspace { padding: 20px 12px; }
+      .workspace-layout { display: flex; flex-direction: column; }
+      .work-grid { display: flex; width: 100%; flex-direction: column; }
+      .work-card { width: 100%; }
+      .decor-panel { width: 100%; max-height: 320px; }
+      .decor-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .selected-editor .row { flex-wrap: wrap; }
+      .selected-editor .row > .field { min-width: 130px; }
+      .workspace-head { flex-direction: column; }
+      .status { max-width: none; text-align: left; }
+    }
+
+    @media print {
+      @page { size: A4 portrait; margin: 0; }
+      html, body { width: 210mm; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+      body > *:not(#print-root) { display: none !important; }
+      #print-root { display: block !important; visibility: visible !important; }
+      .print-page {
+        position: relative;
+        width: 210mm;
+        height: 297mm;
+        padding: 15mm 13.333mm;
+        overflow: hidden;
+        page-break-after: always;
+        break-after: page;
+        background: #fff;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .print-page:last-child { page-break-after: auto; break-after: auto; }
+      .print-grid { display: grid; align-content: start; justify-content: center; }
+      .print-slip { position: relative; overflow: visible; box-sizing: border-box; background: #fff; }
+      .print-slip-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
+      .print-object { position: absolute; overflow: hidden; }
+      .print-object img { display: block; width: 100%; height: 100%; object-fit: fill; }
+      .print-object svg { display: block; width: 100%; height: 100%; }
+      .cut-marks {
+        position: absolute;
+        z-index: 1000;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(#111,#111) left top/4mm .15mm no-repeat,
+          linear-gradient(#111,#111) left top/ .15mm 4mm no-repeat,
+          linear-gradient(#111,#111) right top/4mm .15mm no-repeat,
+          linear-gradient(#111,#111) right top/.15mm 4mm no-repeat,
+          linear-gradient(#111,#111) left bottom/4mm .15mm no-repeat,
+          linear-gradient(#111,#111) left bottom/.15mm 4mm no-repeat,
+          linear-gradient(#111,#111) right bottom/4mm .15mm no-repeat,
+          linear-gradient(#111,#111) right bottom/.15mm 4mm no-repeat;
+      }
+      .cut-marks.continuation-row {
+        background:
+          linear-gradient(#111,#111) left top/4mm .15mm no-repeat,
+          linear-gradient(#111,#111) right top/4mm .15mm no-repeat,
+          linear-gradient(#111,#111) left bottom/4mm .15mm no-repeat,
+          linear-gradient(#111,#111) left bottom/.15mm 4mm no-repeat,
+          linear-gradient(#111,#111) right bottom/4mm .15mm no-repeat,
+          linear-gradient(#111,#111) right bottom/.15mm 4mm no-repeat;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">T</div>
+      <div><div class="brand-title">AppTalonario</div><div class="brand-subtitle">Diseñador e impresión de folios</div></div>
+    </div>
+    <nav class="top-actions" aria-label="Acciones del proyecto">
+      <button id="new-project">Nuevo</button>
+      <button id="open-project">Abrir proyecto</button>
+      <button id="save-project">Guardar proyecto</button>
+      <button id="print-button" class="primary">Vista previa / Imprimir</button>
+    </nav>
+  </header>
+
+  <main class="app">
+    <aside class="sidebar">
+      <section class="panel">
+        <h2 class="panel-title">Diseño del talón</h2>
+        <label class="field">
+          <span>Imagen de fondo</span>
+          <span class="file-picker">
+            <span class="file-picker-button">Elegir imagen</span>
+            <span class="file-picker-name" id="background-file-name">Ningún archivo seleccionado</span>
+            <input id="background-file" type="file" aria-label="Elegir imagen de fondo" accept=".jpg,.jpeg,.png,.webp,.gif,.bmp,.svg,image/jpeg,image/png,image/webp,image/gif,image/bmp,image/svg+xml">
+          </span>
+        </label>
+        <label class="field">
+          <span>Fondos de ejemplo</span>
+          <select id="background-preset">
+            <option value="">Elegir un fondo...</option>
+            <option value="__white__">Fondo en blanco</option>
+            <option value="fondos/fondo-clasico.svg">Clásico verde</option>
+            <option value="fondos/fondo-minimalista.svg">Minimalista azul</option>
+            <option value="fondos/fondo-infantil.svg">Infantil pastel</option>
+            <option value="fondos/fondo-azul-cielo.svg">Azul cielo</option>
+            <option value="fondos/fondo-coral.svg">Coral</option>
+            <option value="fondos/fondo-lavanda.svg">Lavanda</option>
+            <option value="fondos/fondo-rosa.svg">Rosa suave</option>
+            <option value="fondos/fondo-dorado.svg">Dorado</option>
+            <option value="fondos/fondo-celeste.svg">Celeste</option>
+            <option value="fondos/fondo-marino.svg">Azul marino</option>
+            <option value="fondos/fondo-menta.svg">Menta</option>
+            <option value="fondos/fondo-naranja.svg">Naranja</option>
+            <option value="fondos/fondo-violeta.svg">Violeta</option>
+            <option value="fondos/fondo-futbol.svg">Fútbol</option>
+            <option value="fondos/fondo-cumpleanos.svg">Cumpleaños</option>
+            <option value="fondos/fondo-navidad.svg">Navidad</option>
+            <option value="fondos/fondo-flores.svg">Flores</option>
+            <option value="fondos/fondo-estrellas.svg">Estrellas</option>
+            <option value="fondos/fondo-arcoiris.svg">Arcoíris</option>
+            <option value="fondos/fondo-corazones.svg">Corazones</option>
+            <option value="fondos/fondo-tropical.svg">Tropical</option>
+            <option value="fondos/fondo-elegante.svg">Elegante</option>
+            <option value="fondos/fondo-geometrico.svg">Geométrico</option>
+          </select>
+        </label>
+        <div class="button-row">
+          <button class="btn" id="use-image-ratio">Usar proporción de imagen</button>
+          <button class="btn" id="reset-ratio">Proporción 10:3</button>
+        </div>
+        <p class="hint">Haz clic en un texto u objeto para seleccionarlo. Arrástralo para ubicarlo; usa el punto de la esquina para cambiar el tamaño de las imágenes y formas.</p>
+        <div class="button-row" style="margin-top:10px">
+          <button class="btn btn-green" id="add-text">＋ Agregar texto</button>
+          <button class="btn" id="add-image">＋ Imagen superpuesta</button>
+          <button class="btn" id="add-copy-number">＋ Folio duplicado</button>
+        </div>
+        <h3 class="field-label" style="margin:14px 0 0">Insertar forma</h3>
+        <div class="shape-grid" id="shape-grid" aria-label="Formas para insertar">
+          <button class="shape-button" type="button" data-shape="line" aria-label="Agregar línea">
+            <svg viewBox="0 0 100 80" aria-hidden="true"><path d="M10 40H90"/></svg><span>Línea</span>
+          </button>
+          <button class="shape-button" type="button" data-shape="arrow" aria-label="Agregar flecha">
+            <svg viewBox="0 0 100 80" aria-hidden="true"><path d="M10 40H88M66 18l22 22-22 22"/></svg><span>Flecha</span>
+          </button>
+          <button class="shape-button" type="button" data-shape="rect" aria-label="Agregar rectángulo">
+            <svg viewBox="0 0 100 80" aria-hidden="true"><rect x="10" y="10" width="80" height="60"/></svg><span>Rectángulo</span>
+          </button>
+          <button class="shape-button" type="button" data-shape="triangle" aria-label="Agregar triángulo">
+            <svg viewBox="0 0 100 80" aria-hidden="true"><path d="M50 8 94 72H6z"/></svg><span>Triángulo</span>
+          </button>
+          <button class="shape-button" type="button" data-shape="ellipse" aria-label="Agregar elipse">
+            <svg viewBox="0 0 100 80" aria-hidden="true"><ellipse cx="50" cy="40" rx="42" ry="30"/></svg><span>Elipse</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">Numeración correlativa</h2>
+        <div class="row">
+          <label class="field"><span>Número inicial</span><input id="start-number" type="number" min="0" step="1" value="1"></label>
+          <label class="field"><span>Cantidad</span><input id="copy-count" type="number" min="1" max="5000" step="1" value="25"></label>
+        </div>
+        <label class="check-row"><input id="use-prefix" type="checkbox"> Agregar prefijo al folio</label>
+        <label class="field"><span>Prefijo</span><input id="prefix" type="text" value="A" maxlength="24"></label>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">Código QR</h2>
+        <label class="check-row"><input id="qr-enabled" type="checkbox"> Incluir código QR</label>
+        <label class="field"><span>Texto o URL del QR</span><input id="qr-content" type="text" placeholder="https://ejemplo.com"></label>
+        <button class="btn btn-green" id="generate-qr" type="button">Generar / actualizar QR</button>
+        <label class="field"><span>Tamaño <output id="qr-size-label">18%</output></span><input id="qr-size" type="range" min="8" max="40" value="18"></label>
+        <div class="note">El QR se genera al pulsar el botón o Enter. Se usa api.qrserver.com, igual que en tu rutina VB.NET, y se envía el texto ingresado.</div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">Tamaño e impresión</h2>
+        <div class="segmented" role="group" aria-label="Tamaño del talón">
+          <button id="standard-size" class="active" type="button">Estándar</button>
+          <button id="custom-size" type="button">Personalizado</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <label class="field"><span>Ancho (mm)</span><input id="slip-width" type="number" min="20" max="180" step="0.1" value="183.3"></label>
+          <label class="field"><span>Alto (mm)</span><input id="slip-height" type="number" min="10" max="267" step="0.1" value="55"></label>
+        </div>
+        <label class="field"><span>Columnas por hoja A4</span>
+          <select id="columns"><option value="1">1 columna</option><option value="2">2 columnas</option></select>
+        </label>
+        <div class="capacity" id="capacity"></div>
+      </section>
+
+    </aside>
+
+    <section class="workspace">
+      <div class="workspace-head">
+        <div><h1>Diseño del talón</h1><p>Prepara una plantilla y genera folios consecutivos listos para imprimir.</p></div>
+        <div id="status" class="status" role="status">Carga una imagen de fondo para comenzar.</div>
+      </div>
+      <div class="workspace-layout">
+        <div class="work-grid">
+          <section class="work-card">
+            <div class="card-head"><strong>Área de diseño</strong><span id="canvas-dimensions">1000 × 300 px</span></div>
+            <div class="artboard-wrap">
+              <div class="artboard" id="artboard" aria-label="Área de edición">
+                <img id="background-preview" class="artboard-bg hidden" alt="">
+                <div id="empty-board" class="empty-board"><b>Tu talonario comienza aquí</b><span>Selecciona una imagen o un fondo en blanco desde el panel</span></div>
+                <div id="objects-layer"></div>
+              </div>
+            </div>
+            <div class="canvas-foot"><span>Los elementos se ajustan proporcionalmente al tamaño de impresión.</span><span id="selected-label">Ningún elemento seleccionado</span></div>
+            <section class="selected-editor" aria-label="Edición del elemento seleccionado">
+              <h2 class="panel-title">Elemento seleccionado</h2>
+              <div id="no-selection" class="selected-empty">Selecciona un texto, folio, QR, imagen o forma en el área de diseño para editarlo.</div>
+              <div id="selection-controls" class="hidden">
+                <label class="field" id="text-edit-field"><span>Texto</span><textarea id="object-text"></textarea></label>
+                <div class="row" id="text-style-row">
+                  <label class="field"><span>Tamaño</span><input id="object-font-size" type="number" min="6" max="180" value="32"></label>
+                  <label class="field"><span>Color</span><input id="object-color" type="color" value="#17243a"></label>
+                </div>
+                <div id="shape-controls" class="hidden">
+                  <div class="row">
+                    <label class="field"><span>Ancho (%)</span><input id="shape-width" type="number" min="2" max="95" step="1"></label>
+                    <label class="field"><span>Alto (%)</span><input id="shape-height" type="number" min="2" max="95" step="1"></label>
+                  </div>
+                  <div class="row">
+                    <label class="field"><span>Trazo</span><input id="shape-stroke" type="color" value="#17243a"></label>
+                    <label class="field"><span>Grosor (px)</span><input id="shape-stroke-width" type="number" min="1" max="20" step="0.5" value="2.5"></label>
+                  </div>
+                  <label class="check-row"><input id="shape-dotted" type="checkbox"> Línea punteada</label>
+                  <label class="check-row"><input id="shape-filled" type="checkbox"> Rellenar forma</label>
+                  <label class="field"><span>Relleno</span><input id="shape-fill" type="color" value="#8fe1c2"></label>
+                </div>
+                <label class="field" id="font-family-field"><span>Tipografía</span>
+                  <select id="object-font-family"></select>
+                </label>
+                <label class="field" id="rotation-field">
+                  <span>Rotación <output id="object-rotation-label">0°</output></span>
+                  <input id="object-rotation" type="range" min="-180" max="180" step="1" value="0">
+                </label>
+                <div class="button-row" id="text-format-row">
+                  <button class="btn" id="toggle-bold">Negrita</button>
+                  <button class="btn" id="toggle-italic">Cursiva</button>
+                </div>
+                <div class="field">
+                  <span class="field-label">Orden de capas</span>
+                  <div class="button-row">
+                    <button class="btn" id="move-backward">Atrás</button>
+                    <button class="btn" id="move-forward">Adelante</button>
+                    <button class="btn" id="move-to-back">Al fondo</button>
+                    <button class="btn" id="move-to-front">Al frente</button>
+                  </div>
+                </div>
+                <div class="button-row editor-actions">
+                  <button class="btn" id="toggle-visibility" type="button">Ocultar elemento</button>
+                  <button class="btn btn-red" id="delete-object">Eliminar</button>
+                </div>
+              </div>
+            </section>
+          </section>
+          <section class="work-card sheet-card">
+            <div class="card-head"><strong>Distribución en hoja A4</strong><span id="page-count">1 página</span></div>
+            <div id="paper-preview" class="paper" aria-label="Vista previa de distribución"></div>
+            <div class="capacity" id="sheet-summary"></div>
+            <div class="legend"><span>Marcas de corte incluidas al imprimir</span></div>
+          </section>
+        </div>
+        <aside class="work-card decor-panel" aria-label="Biblioteca de decoraciones">
+          <div class="card-head"><strong>Decoraciones</strong><span>Haz clic para agregar</span></div>
+          <label class="field decor-filter">
+            <span>Tipo de decoración</span>
+            <select id="decoration-category">
+              <option value="todas">Todas las categorías</option>
+              <option value="infantil">Infantiles</option>
+              <option value="escolar">Escolares</option>
+              <option value="fiesta">Fiestas y celebraciones</option>
+              <option value="naturaleza">Naturaleza</option>
+              <option value="simbolos">Símbolos y formas</option>
+              <option value="animales">Animales</option>
+              <option value="musica">Música</option>
+              <option value="deportes">Deportes</option>
+              <option value="temporadas">Temporadas</option>
+              <option value="marcos">Marcos y cintas</option>
+            </select>
+          </label>
+          <div id="decoration-grid" class="decor-grid"></div>
+          <button class="btn decor-upload" id="decoration-upload" type="button">＋ Subir imagen propia</button>
+          <p class="decor-hint">Haz clic en una decoración para agregarla; luego arrástrala para ubicarla y usa el tirador para ajustar su tamaño.</p>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <input id="project-file" type="file" accept=".json,application/json" class="hidden">
+  <input id="overlay-file" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.bmp,.svg,image/jpeg,image/png,image/webp,image/gif,image/bmp,image/svg+xml" class="hidden">
+  <input id="decoration-file" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.bmp,.svg,image/jpeg,image/png,image/webp,image/gif,image/bmp,image/svg+xml" class="hidden">
+  <div id="print-root" aria-hidden="true"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const $ = (id) => document.getElementById(id);
+      const FONT_FAMILIES = [
+        "Arial", "Arial Black", "Bahnschrift", "Book Antiqua", "Calibri", "Cambria",
+        "Candara", "Century Gothic", "Comic Sans MS", "Consolas", "Constantia",
+        "Corbel", "Courier New", "Franklin Gothic Medium", "Garamond", "Georgia",
+        "Impact", "Lucida Console", "Lucida Sans Unicode", "Palatino Linotype",
+        "Segoe UI", "Tahoma", "Times New Roman", "Trebuchet MS", "Verdana",
+        "serif", "sans-serif", "monospace", "cursive", "fantasy"
+      ];
+      const DECORATIONS = [
+        {
+          name: "Estrella",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path fill="#f3bd4d" stroke="#d99b24" stroke-linejoin="round" stroke-width="4" d="m64 9 15.8 32 35.3 5.1-25.5 24.9 6 35.2L64 89.6l-31.6 16.6 6-35.2L12.9 46.1l35.3-5.1z"/><circle cx="64" cy="61" r="7" fill="#fff3cd"/></svg>'
+        },
+        {
+          name: "Corazón",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path fill="#e97982" stroke="#c94e63" stroke-linejoin="round" stroke-width="4" d="M64 111 19 68C-8 39 30 3 57 29l7 8 7-8c27-26 65 10 38 39z"/><path fill="none" stroke="#f8c7c9" stroke-linecap="round" stroke-width="5" d="M34 46c1-8 8-14 16-14"/></svg>'
+        },
+        {
+          name: "Flor",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g fill="#e9a1bd" stroke="#cc7297" stroke-width="3"><circle cx="64" cy="27" r="19"/><circle cx="96" cy="48" r="19"/><circle cx="84" cy="86" r="19"/><circle cx="44" cy="86" r="19"/><circle cx="32" cy="48" r="19"/></g><circle cx="64" cy="57" r="20" fill="#f4c95d" stroke="#dcaa37" stroke-width="3"/><path fill="none" stroke="#8bb88d" stroke-linecap="round" stroke-width="6" d="M64 78v37m0-16c-12-12-22-9-24-9m24 1c10-12 20-10 23-10"/></svg>'
+        },
+        {
+          name: "Globo",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><ellipse cx="62" cy="48" rx="39" ry="43" fill="#80c7dd" stroke="#4b9eb8" stroke-width="4"/><path fill="#4b9eb8" d="m55 89 9 12 9-12z"/><path fill="none" stroke="#85838d" stroke-linecap="round" stroke-width="3" d="M64 101c-8 10 10 12 0 23"/><path fill="none" stroke="#c6edf5" stroke-linecap="round" stroke-width="6" d="M42 25c-8 9-11 20-11 28"/></svg>'
+        },
+        {
+          name: "Sol",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g stroke="#e6a62f" stroke-linecap="round" stroke-width="8"><path d="M64 7v14M64 107v14M7 64h14m86 0h14M24 24l10 10m60 60 10 10m0-80L94 34m-60 60-10 10"/></g><circle cx="64" cy="64" r="34" fill="#f5c858" stroke="#e6a62f" stroke-width="4"/><path fill="none" stroke="#9d6835" stroke-linecap="round" stroke-width="4" d="M49 61h1m28 0h1m-28 15c8 9 19 9 27 0"/></svg>'
+        },
+        {
+          name: "Trébol",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g fill="#78b98a" stroke="#4d9565" stroke-width="4"><circle cx="64" cy="36" r="25"/><circle cx="40" cy="62" r="25"/><circle cx="88" cy="62" r="25"/></g><path fill="none" stroke="#4d9565" stroke-linecap="round" stroke-width="9" d="M64 64c1 24-9 38-25 51"/><circle cx="64" cy="58" r="9" fill="#d9edbd"/></svg>'
+        },
+        {
+          name: "Regalo",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path fill="#ed8992" stroke="#c85a68" stroke-width="4" d="M20 53h88v62H20z"/><path fill="#f2ad62" stroke="#d18a43" stroke-width="4" d="M13 40h102v21H13z"/><path fill="none" stroke="#fff4dd" stroke-width="11" d="M58 42h13v72H58z"/><path fill="none" stroke="#fff4dd" stroke-width="9" d="M64 40C29 47 24 10 45 12c16 2 19 18 19 28Zm1 0c35 7 40-30 19-28-16 2-19 18-19 28Z"/></svg>'
+        },
+        {
+          name: "Lápiz",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g transform="rotate(42 64 64)"><path fill="#f2c450" stroke="#c89430" stroke-width="4" d="M48 22h32v72H48z"/><path fill="#e98178" stroke="#bd5c56" stroke-width="4" d="M48 15c0-14 32-14 32 0v12H48z"/><path fill="#edc9a1" stroke="#b7916d" stroke-width="4" d="m48 94 16 28 16-28z"/><path fill="#33465d" d="m59 114 5 8 5-8z"/><path fill="none" stroke="#fff1bd" stroke-linecap="round" stroke-width="4" d="M57 37v45"/></g></svg>'
+        },
+        {
+          name: "Nube",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M29 91a23 23 0 0 1-3-46 36 36 0 0 1 69-2 24 24 0 0 1 6 48z" fill="#b9e4f2" stroke="#71b7d1" stroke-width="5"/><path d="M45 70c10-8 22-8 33 0" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="5"/></svg>'
+        },
+        {
+          name: "Luna",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M91 96A48 48 0 0 1 35 25a48 48 0 1 0 56 71" fill="#f5d477" stroke="#daa940" stroke-width="4"/><circle cx="78" cy="51" r="4" fill="#c58e43"/><circle cx="61" cy="77" r="3" fill="#c58e43"/></svg>'
+        },
+        {
+          name: "Mariposa",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M61 61C22 5 5 42 17 70c8 17 28 14 44 2-8 37 2 47 10 34 6-9 5-21 2-34 19 17 42 18 46 1 8-29-12-66-53-12" fill="#c4a4e8" stroke="#9272bd" stroke-width="4"/><path d="M65 48c-9-24-20-19-24-14m24 14c8-24 19-19 24-14" fill="none" stroke="#715e90" stroke-linecap="round" stroke-width="4"/><path d="M64 54v52" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>'
+        },
+        {
+          name: "Cohete",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M64 12c24 20 30 49 14 76H50C34 61 40 32 64 12z" fill="#f1f3f6" stroke="#70849a" stroke-width="4"/><circle cx="64" cy="47" r="10" fill="#79c6dc" stroke="#518ca2" stroke-width="4"/><path d="m49 73-19 21 24-7m25-14 19 21-24-7" fill="#ed8b72" stroke="#c4604b" stroke-width="4"/><path d="M52 87h24l-4 23-8 8-8-8z" fill="#f5c55b" stroke="#d79c33" stroke-width="4"/></svg>'
+        },
+        {
+          name: "Manzana",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M64 38c-30-19-52 3-44 39 7 32 22 42 43 31 21 11 36 1 43-31 8-36-14-58-42-39z" fill="#e87976" stroke="#c84e50" stroke-width="4"/><path d="M63 40c-4-17 1-25 9-31" fill="none" stroke="#765338" stroke-width="6" stroke-linecap="round"/><path d="M69 25c15-15 30-10 33-1-12 12-24 14-33 1" fill="#84bd80" stroke="#5b965a" stroke-width="3"/><path d="M41 54c-5 8-6 15-5 21" fill="none" stroke="#f8b1a4" stroke-linecap="round" stroke-width="5"/></svg>'
+        },
+        {
+          name: "Libro",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M15 25c19-8 37-3 49 9v75c-13-12-31-16-49-8zM113 25c-19-8-37-3-49 9v75c13-12 31-16 49-8z" fill="#a8d7c2" stroke="#578f78" stroke-width="4" stroke-linejoin="round"/><path d="M64 34v75M25 42c10-2 19 0 27 5m-27 9c10-2 19 0 27 5m51-19c-10-2-19 0-27 5m27 9c-10-2-19 0-27 5" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg>'
+        },
+        {
+          name: "Banderines",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M13 26c34 18 68 18 102 0" fill="none" stroke="#7b7185" stroke-width="4"/><path d="m25 31 23 8-14 24zm35 11h24L72 69zm40-9 19-9-2 33z" fill="#ed8c92" stroke="#cf6772" stroke-width="3" stroke-linejoin="round"/><path d="m46 37 22 4-11 24zm39 1 19-5-7 28z" fill="#f2cf72" stroke="#d7ad4d" stroke-width="3" stroke-linejoin="round"/></svg>'
+        },
+        {
+          name: "Arcoíris",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M14 101a50 50 0 0 1 100 0" fill="none" stroke="#e97982" stroke-width="13"/><path d="M27 101a37 37 0 0 1 74 0" fill="none" stroke="#f0bd62" stroke-width="12"/><path d="M40 101a24 24 0 0 1 48 0" fill="none" stroke="#8dbd89" stroke-width="12"/><path d="M53 101a11 11 0 0 1 22 0" fill="none" stroke="#83bdd4" stroke-width="11"/><path d="M9 85c-1-12 15-17 23-8 8-10 25-6 26 6 1 11-9 16-24 16H24C15 99 10 93 9 85zm63 0c-1-12 15-17 23-8 8-10 25-6 26 6 1 11-9 16-24 16h-10c-9 0-14-6-15-14z" fill="#f3f6fa" stroke="#bdcbd8" stroke-width="3"/></svg>'
+        },
+        {
+          name: "Tijeras",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><circle cx="29" cy="91" r="15" fill="none" stroke="#d77d85" stroke-width="8"/><circle cx="29" cy="37" r="15" fill="none" stroke="#d77d85" stroke-width="8"/><path d="m41 47 70 60M41 81l70-60M49 64l62 0" fill="none" stroke="#8091a6" stroke-linecap="round" stroke-width="7"/><circle cx="48" cy="64" r="7" fill="#64758c"/></svg>'
+        },
+        {
+          name: "Campana",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M64 17c-21 0-33 17-33 43 0 15-8 26-17 35h100c-9-9-17-20-17-35 0-26-12-43-33-43z" fill="#f2ce75" stroke="#ca9e42" stroke-width="4" stroke-linejoin="round"/><path d="M49 103c2 14 28 14 30 0" fill="#d88978" stroke="#b96657" stroke-width="4"/><path d="M57 16c1-10 13-10 14 0" fill="none" stroke="#ca9e42" stroke-width="5" stroke-linecap="round"/></svg>'
+        },
+        {
+          name: "Medalla",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="m36 11 28 21 28-21-9 49H45z" fill="#85b9d6" stroke="#568eae" stroke-width="4" stroke-linejoin="round"/><circle cx="64" cy="77" r="35" fill="#f3c85c" stroke="#d8a43a" stroke-width="5"/><circle cx="64" cy="77" r="25" fill="#ffe59a" stroke="#fff4cc" stroke-width="3"/><path d="m64 56 6 13 14 1-11 9 3 14-12-7-12 7 3-14-11-9 14-1z" fill="#e6ad3a"/></svg>'
+        },
+        {
+          name: "Carita feliz",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><circle cx="64" cy="64" r="51" fill="#f5d168" stroke="#d9a83b" stroke-width="5"/><circle cx="45" cy="51" r="5" fill="#795d42"/><circle cx="83" cy="51" r="5" fill="#795d42"/><path d="M38 72c8 17 21 25 26 25s18-8 26-25" fill="none" stroke="#795d42" stroke-linecap="round" stroke-width="6"/><path d="M26 36c8-11 18-17 29-20" fill="none" stroke="#fff0b0" stroke-linecap="round" stroke-width="5"/></svg>'
+        },
+        {
+          name: "Pieza de rompecabezas",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M22 22h27c-4-15 4-23 15-23s19 8 15 23h27v27c15-4 23 4 23 15s-8 19-23 15v27H79c4-15-4-23-15-23s-19 8-15 23H22V79C7 83-1 75-1 64s8-19 23-15z" transform="translate(2 2) scale(.96)" fill="#b5a0dc" stroke="#8973b3" stroke-width="4" stroke-linejoin="round"/></svg>'
+        },
+        {
+          name: "Pececito",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M22 64C43 32 82 32 101 61l20-20v46l-20-20c-19 29-58 29-79-3z" fill="#7dc5d5" stroke="#4b9aaa" stroke-width="4" stroke-linejoin="round"/><circle cx="45" cy="57" r="5" fill="#34495e"/><path d="M63 67c8 6 16 6 23 0" fill="none" stroke="#d8f3f3" stroke-width="4" stroke-linecap="round"/><circle cx="105" cy="29" r="5" fill="#f1cb73"/><circle cx="115" cy="15" r="3" fill="#f1cb73"/></svg>'
+        },
+        {
+          name: "Hoja",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M108 15C53 13 19 31 20 70c1 31 37 45 61 22 20-20 23-51 27-77z" fill="#8fc58c" stroke="#5c9a65" stroke-width="4"/><path d="M20 111c25-30 47-49 80-78M49 83 43 54m22 9-1-27m-6 50 29 1" fill="none" stroke="#e0f0d7" stroke-linecap="round" stroke-width="4"/></svg>'
+        },
+        {
+          name: "Estrellitas",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path fill="#f0bc52" stroke="#d39630" stroke-width="3" d="m37 12 7 18 19 2-14 12 4 18-16-10-16 10 4-18-14-12 19-2zm55 48 6 15 16 2-12 10 4 15-14-8-14 8 3-15-11-10 15-2z"/><path fill="#88bed6" d="m83 14 4 10 10 1-8 7 2 10-8-5-9 5 2-10-8-7 11-1z"/></svg>'
+        },
+        {
+          name: "Taza",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M25 35h68v54a25 25 0 0 1-25 25H50a25 25 0 0 1-25-25z" fill="#e7a5a1" stroke="#bd7273" stroke-width="4"/><path d="M93 48h11a18 18 0 0 1 0 36H93" fill="none" stroke="#bd7273" stroke-width="9"/><path d="M42 25c-7-10 7-13 0-23m24 23c-7-10 7-13 0-23" fill="none" stroke="#97bbd0" stroke-linecap="round" stroke-width="5"/><path d="M42 58h31" stroke="#f7d8d1" stroke-linecap="round" stroke-width="5"/></svg>'
+        },
+        {
+          name: "Gatito",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="m27 48-5-31 31 16a49 49 0 0 1 22 0l31-16-5 31c8 10 12 21 12 33 0 28-22 41-53 41S7 109 7 81c0-12 5-24 20-33z" fill="#f3c6a5" stroke="#bd8c70" stroke-width="4" stroke-linejoin="round"/><circle cx="45" cy="72" r="5" fill="#544d4a"/><circle cx="83" cy="72" r="5" fill="#544d4a"/><path d="m57 84 7 5 7-5m-7 5v8m-8-4-14 3m30-3 14 3" fill="none" stroke="#765c54" stroke-width="3" stroke-linecap="round"/></svg>'
+        },
+        {
+          name: "Perrito",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M31 39C9 22 7 58 22 78l6 8c0 25 16 34 36 34s36-9 36-34l6-8c15-20 13-56-9-39-19-15-47-15-66 0z" fill="#dba875" stroke="#ae784c" stroke-width="4"/><circle cx="45" cy="70" r="5" fill="#443c37"/><circle cx="83" cy="70" r="5" fill="#443c37"/><ellipse cx="64" cy="86" rx="13" ry="9" fill="#554139"/><path d="M56 98c5 7 11 7 16 0" fill="none" stroke="#fff1df" stroke-width="4" stroke-linecap="round"/></svg>'
+        },
+        {
+          name: "Dinosaurio",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M15 74c0-29 20-49 50-49h29c13 0 22 9 22 21s-9 21-22 21H75v29c0 17-11 27-27 27H30V99c-10-5-15-14-15-25z" fill="#8bc58b" stroke="#57965f" stroke-width="4"/><path d="m40 36 7-13 9 13m7-12 7-13 9 13m10-1 7-13 9 13" fill="#ed9290" stroke="#c66d72" stroke-width="3"/><circle cx="96" cy="43" r="4" fill="#344b3b"/><path d="M100 54h9" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg>'
+        },
+        {
+          name: "Nota musical",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M70 25v65c0 15-12 25-28 25-13 0-22-7-22-18 0-13 13-22 31-22 5 0 9 1 12 3V18l45-10v65" fill="#8b78c5" stroke="#67559d" stroke-width="6" stroke-linejoin="round"/><ellipse cx="40" cy="97" rx="18" ry="12" fill="#8b78c5"/><ellipse cx="93" cy="76" rx="18" ry="12" fill="#8b78c5"/></svg>'
+        },
+        {
+          name: "Guitarra",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="m72 36 19-20 10 10-20 20c17 23 5 57-21 62-11 2-17-4-26-2-18 4-31-10-27-28 2-9-4-15-1-26 8-27 42-35 66-16z" fill="#e2a35e" stroke="#aa7043" stroke-width="4"/><circle cx="53" cy="70" r="14" fill="#8a5d41"/><path d="m55 65 34-41m-31 44 34-41m-37 44 34-41" stroke="#f9edcf" stroke-width="2"/><path d="M93 16 105 4l12 12-12 12z" fill="#d27b70"/></svg>'
+        },
+        {
+          name: "Pelota",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><circle cx="64" cy="64" r="51" fill="#f6f7fa" stroke="#65758a" stroke-width="4"/><path d="m64 13 13 25-13 17-24-5-9-27m60 3-5 27 21 15m-4 35-27-2-12 22M20 92l22-12-3-30m25 5 16 16-8 22-20-1m20-59 13 11-2 17" fill="#82b8d5" stroke="#65758a" stroke-width="4" stroke-linejoin="round"/></svg>'
+        },
+        {
+          name: "Trofeo",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M37 18h54v27c0 25-11 40-27 40S37 70 37 45z" fill="#f2ca59" stroke="#cb9c32" stroke-width="4"/><path d="M37 28H17v13c0 18 11 28 26 28m48-41h20v13c0 18-11 28-26 28M58 84v20m12-20v20m-27 9h54v10H43z" fill="none" stroke="#cb9c32" stroke-width="7" stroke-linejoin="round"/><path d="m64 31 5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z" fill="#fff3c8"/></svg>'
+        },
+        {
+          name: "Bicicleta",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g fill="none" stroke="#668a9e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><circle cx="28" cy="87" r="22"/><circle cx="99" cy="87" r="22"/><path d="m28 87 24-37 19 37H28l14-23h36l21 23M45 42h15m20 0h12"/></g><circle cx="71" cy="87" r="5" fill="#e8877e"/></svg>'
+        },
+        {
+          name: "Copo de nieve",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g fill="none" stroke="#76bad3" stroke-linecap="round" stroke-linejoin="round" stroke-width="7"><path d="M64 12v104M19 38l90 52M19 90l90-52"/><path d="m53 24 11-12 11 12M53 104l11 12 11-12M21 51l-2-13 15 1m61 51 15 1-2-13M34 99l-15-9 2 13m75-73 15-1-2 13M34 29l-15 9 2-13m75 73 15-9-2 13"/></g><circle cx="64" cy="64" r="6" fill="#d7eff7"/></svg>'
+        },
+        {
+          name: "Calabaza",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M64 28c-31-19-53 7-49 42 3 29 20 44 49 32 29 12 46-3 49-32 4-35-18-61-49-42z" fill="#ed9b52" stroke="#c87335" stroke-width="4"/><path d="M64 29c-9-12-4-20 2-26 9 8 10 16 4 25" fill="#83ad69" stroke="#5d8852" stroke-width="4"/><path d="M64 36v63M43 38c-12 23-12 43 0 59m42-59c12 23 12 43 0 59" fill="none" stroke="#d47c3f" stroke-width="4"/></svg>'
+        },
+        {
+          name: "Rosa",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M64 111V60m0 29c-13-16-24-14-31-12m31 6c15-17 26-15 34-12" fill="none" stroke="#5d9c68" stroke-width="7" stroke-linecap="round"/><path d="M64 75C37 75 29 51 45 38 29 12 57 2 68 23 90 2 112 22 91 42c17 20 0 39-27 33z" fill="#e990a9" stroke="#c96d88" stroke-width="4"/><path d="M63 61c-13-9 2-25 13-14 9 9-2 18-13 14z" fill="#f3c46b"/></svg>'
+        },
+        {
+          name: "Cinta",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M18 29h92v60H18z" fill="#8ec6b1" stroke="#579982" stroke-width="4"/><path d="m18 29 92 60m0-60L18 89" fill="none" stroke="#fff" stroke-width="4"/><path d="m18 89 21-6-9 23zm92 0-21-6 9 23z" fill="#5b9d86"/><path d="M26 48h76v22H26z" fill="#f6d88c" stroke="#d4b768" stroke-width="3"/><path d="M42 59h44" stroke="#fff6dc" stroke-width="4" stroke-linecap="round"/></svg>'
+        }
+      ];
+      const DECORATION_CATEGORIES = {
+        infantil: ["Corazón", "Globo", "Nube", "Luna", "Mariposa", "Cohete", "Carita feliz", "Pececito"],
+        escolar: ["Lápiz", "Manzana", "Libro", "Tijeras", "Pieza de rompecabezas"],
+        fiesta: ["Regalo", "Banderines", "Campana", "Medalla", "Taza", "Estrellitas"],
+        naturaleza: ["Flor", "Sol", "Trébol", "Hoja"],
+        simbolos: ["Estrella", "Arcoíris"],
+        animales: ["Gatito", "Perrito", "Dinosaurio"],
+        musica: ["Nota musical", "Guitarra"],
+        deportes: ["Pelota", "Trofeo", "Bicicleta"],
+        temporadas: ["Copo de nieve", "Calabaza"],
+        marcos: ["Rosa", "Cinta"]
+      };
+      const EXTRA_DECORATIONS = [
+        { name: "Perrito", category: "animales", src: "decoraciones/animales/perrito.svg" },
+        { name: "Gatito", category: "animales", src: "decoraciones/animales/gatito.svg" },
+        { name: "Dinosaurio", category: "animales", src: "decoraciones/animales/dinosaurio.svg" },
+        { name: "Guitarra", category: "musica", src: "decoraciones/musica/guitarra.svg" },
+        { name: "Nota musical", category: "musica", src: "decoraciones/musica/nota-musical.svg" },
+        { name: "Medalla", category: "simbolos", src: "decoraciones/simbolos/medalla.svg" },
+        { name: "Estrella", category: "simbolos", src: "decoraciones/simbolos/estrella.svg" },
+        { name: "Corazón", category: "simbolos", src: "decoraciones/simbolos/corazon.svg" },
+        { name: "Rosa", category: "marcos", src: "decoraciones/marcos/rosa.svg" },
+        { name: "Cinta", category: "marcos", src: "decoraciones/marcos/cinta.svg" },
+        { name: "Pelota", category: "deportes", src: "decoraciones/deportes/pelota.svg" },
+        { name: "Trofeo", category: "deportes", src: "decoraciones/deportes/trofeo.svg" },
+        { name: "Bicicleta", category: "deportes", src: "decoraciones/deportes/bicicleta.svg" },
+        { name: "Tijeras", category: "escolar", src: "decoraciones/escolares/tijeras.svg" },
+        { name: "Libro", category: "escolar", src: "decoraciones/escolares/libro.svg" },
+        { name: "Lápiz", category: "escolar", src: "decoraciones/escolares/lapiz.svg" },
+        { name: "Flor", category: "naturaleza", src: "decoraciones/naturaleza/flor.svg" },
+        { name: "Hoja", category: "naturaleza", src: "decoraciones/naturaleza/hoja.svg" },
+        { name: "Trébol", category: "naturaleza", src: "decoraciones/naturaleza/trebol.svg" },
+        { name: "Nube", category: "infantil", src: "decoraciones/infantiles/nube.svg" },
+        { name: "Mariposa", category: "infantil", src: "decoraciones/infantiles/mariposa.svg" },
+        { name: "Cohete", category: "infantil", src: "decoraciones/infantiles/cohete.svg" },
+        { name: "Banderines", category: "fiesta", src: "decoraciones/fiestas/banderines.svg" },
+        { name: "Campana", category: "fiesta", src: "decoraciones/fiestas/campana.svg" },
+        { name: "Regalo", category: "fiesta", src: "decoraciones/fiestas/regalo.svg" },
+        { name: "Calabaza", category: "temporadas", src: "decoraciones/temporadas/calabaza.svg" },
+        { name: "Copo de nieve", category: "temporadas", src: "decoraciones/temporadas/copo-nieve.svg" }
+      ];
+      const ALL_DECORATIONS = [...new Map(
+        [...DECORATIONS, ...EXTRA_DECORATIONS].map((decoration) => [decoration.name, decoration])
+      ).values()];
+      const state = {
+        background: "",
+        backgroundName: "",
+        aspect: 10 / 3,
+        standard: true,
+        slipWidth: 183.333,
+        slipHeight: 55,
+        columns: 1,
+        start: 1,
+        copies: 25,
+        prefixEnabled: false,
+        prefix: "A",
+        qrEnabled: false,
+        qrContent: "",
+        qrGeneratedContent: "",
+        qrSize: 18,
+        selectedId: null,
+        nextId: 1,
+        objects: []
+      };
+      let renderedSelectionId = null;
+
+      function createNumberObject() {
+        return {
+          id: "folio-main",
+          type: "number",
+          x: 8,
+          y: 22,
+          fontSize: 34,
+          color: "#17243a",
+          bold: true,
+          italic: false,
+          z: 1,
+          visible: true
+        };
+      }
+      state.objects.push(createNumberObject());
+      state.selectedId = "folio-main";
+      for (const family of FONT_FAMILIES) {
+        const option = document.createElement("option");
+        option.value = family;
+        option.textContent = family;
+        option.style.fontFamily = `"${family}"`;
+        $("object-font-family").append(option);
+      }
+      for (const decoration of ALL_DECORATIONS) {
+        const category = decoration.category || Object.entries(DECORATION_CATEGORIES)
+          .find(([, names]) => names.includes(decoration.name))?.[0] || "infantil";
+        const dataUrl = decoration.src || `data:image/svg+xml;base64,${btoa(decoration.svg)}`;
+        const button = document.createElement("button");
+        button.className = "decor-item";
+        button.type = "button";
+        button.dataset.category = category;
+        button.title = `Agregar ${decoration.name.toLowerCase()}`;
+        button.setAttribute("aria-label", `Agregar decoración: ${decoration.name}`);
+        const image = document.createElement("img");
+        image.src = dataUrl;
+        image.alt = "";
+        image.draggable = false;
+        const label = document.createElement("span");
+        label.textContent = decoration.name;
+        button.append(image, label);
+        button.addEventListener("click", () => addImageObject(dataUrl, decoration.name));
+        $("decoration-grid").append(button);
+      }
+      $("decoration-category").addEventListener("change", (event) => {
+        const category = event.target.value;
+        for (const item of $("decoration-grid").querySelectorAll(".decor-item")) {
+          item.classList.toggle("hidden", category !== "todas" && item.dataset.category !== category);
+        }
+      });
+      $("shape-grid").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-shape]");
+        if (button) addShapeObject(button.dataset.shape);
+      });
+
+      const safeNumber = (value, fallback, min, max) => {
+        if (value === null || value === undefined || (typeof value === "string" && !value.trim())) return fallback;
+        const n = Number(value);
+        return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+      };
+      const safeInteger = (value, fallback, min, max) => Math.trunc(safeNumber(value, fallback, min, max));
+      const isImageDataUrl = (value) => typeof value === "string" && /^data:image\/(?:png|jpeg|webp|gif|bmp|svg\+xml);base64,[A-Za-z0-9+/=\r\n]+$/i.test(value);
+      const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[char]);
+      const selectedObject = () => state.objects.find((obj) => obj.id === state.selectedId) || null;
+      const WHITE_BACKGROUND = "__white__";
+      const builtInBackgrounds = new Set([
+        "fondos/fondo-clasico.svg",
+        "fondos/fondo-minimalista.svg",
+        "fondos/fondo-infantil.svg",
+        "fondos/fondo-azul-cielo.svg",
+        "fondos/fondo-coral.svg",
+        "fondos/fondo-lavanda.svg",
+        "fondos/fondo-rosa.svg",
+        "fondos/fondo-dorado.svg",
+        "fondos/fondo-celeste.svg",
+        "fondos/fondo-marino.svg",
+        "fondos/fondo-menta.svg",
+        "fondos/fondo-naranja.svg",
+        "fondos/fondo-violeta.svg",
+        "fondos/fondo-futbol.svg",
+        "fondos/fondo-cumpleanos.svg",
+        "fondos/fondo-navidad.svg",
+        "fondos/fondo-flores.svg",
+        "fondos/fondo-estrellas.svg",
+        "fondos/fondo-arcoiris.svg",
+        "fondos/fondo-corazones.svg",
+        "fondos/fondo-tropical.svg",
+        "fondos/fondo-elegante.svg",
+        "fondos/fondo-geometrico.svg"
+      ]);
+
+      function folio(number) {
+        const digits = String(Math.max(0, Math.trunc(number))).padStart(6, "0");
+        return state.prefixEnabled && state.prefix.trim() ? `${state.prefix.trim()}-${digits}` : digits;
+      }
+
+      function nextObjectId(prefix) {
+        let id;
+        do {
+          id = `${prefix}-${state.nextId++}`;
+        } while (state.objects.some((obj) => obj.id === id));
+        return id;
+      }
+
+      function setStatus(message, isError = false) {
+        $("status").textContent = message;
+        $("status").classList.toggle("error", isError);
+      }
+
+      function currentPlan() {
+        const width = state.slipWidth;
+        const height = state.slipHeight;
+        const columns = state.columns;
+        const usableHeight = state.standard ? 275 : 267;
+        const rows = Math.floor((usableHeight + 0.001) / height);
+        const fitsWidth = width * columns + (columns - 1) * 4 <= 183.334;
+        const perPage = fitsWidth && rows > 0 ? rows * columns : 0;
+        return { rows, perPage, fitsWidth };
+      }
+
+      function syncInputs() {
+        const uploadedBackground = state.background
+          && state.background !== WHITE_BACKGROUND
+          && !builtInBackgrounds.has(state.background);
+        $("background-file-name").textContent = uploadedBackground
+          ? state.backgroundName || "Imagen cargada"
+          : "Ningún archivo seleccionado";
+        $("start-number").value = state.start;
+        $("copy-count").value = state.copies;
+        $("use-prefix").checked = state.prefixEnabled;
+        $("prefix").value = state.prefix;
+        $("qr-enabled").checked = state.qrEnabled;
+        $("qr-content").value = state.qrContent;
+        $("background-preset").value = state.background === WHITE_BACKGROUND || builtInBackgrounds.has(state.background) ? state.background : "";
+        $("qr-size").value = state.qrSize;
+        $("qr-size-label").value = `${state.qrSize}%`;
+        $("slip-width").value = Number(state.slipWidth.toFixed(1));
+        $("slip-height").value = Number(state.slipHeight.toFixed(1));
+        $("columns").value = String(state.columns);
+        $("standard-size").classList.toggle("active", state.standard);
+        $("custom-size").classList.toggle("active", !state.standard);
+        $("slip-width").disabled = state.standard;
+        $("slip-height").disabled = state.standard;
+        $("columns").disabled = state.standard;
+      }
+
+      function applyArtboardRatio() {
+        const ratio = Number.isFinite(state.aspect) && state.aspect > 0 ? state.aspect : 10 / 3;
+        $("artboard").style.aspectRatio = `${ratio}`;
+        $("canvas-dimensions").textContent = `1000 × ${Math.round(1000 / ratio)} px`;
+        requestAnimationFrame(renderObjects);
+      }
+
+      function objectLabel(obj) {
+        if (obj.type === "number") return folio(state.start);
+        if (obj.type === "text") return obj.text || "";
+        if (obj.type === "qr") return "";
+        return "";
+      }
+
+      function shapeSvgMarkup(obj, scale = 1) {
+        const stroke = /^#[0-9a-f]{6}$/i.test(obj.color || "") ? obj.color : "#17243a";
+        const fill = obj.filled && /^#[0-9a-f]{6}$/i.test(obj.fillColor || "") ? obj.fillColor : "none";
+        const strokeWidth = safeNumber(obj.strokeWidth, 2.5, 1, 20) * scale;
+        const dash = obj.dotted ? ' stroke-dasharray="6 4"' : "";
+        const lineCap = obj.dotted ? "butt" : "round";
+        const common = `fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke" stroke-linecap="${lineCap}" stroke-linejoin="round"${dash}`;
+        let markup;
+        if (obj.shape === "line") markup = `<path d="M8 50H92" fill="none" ${common}/>`;
+        else if (obj.shape === "arrow") markup = `<path d="M8 50H88M68 28l22 22-22 22" fill="none" ${common}/>`;
+        else if (obj.shape === "triangle") markup = `<path d="M50 8 92 90H8Z" ${common}/>`;
+        else if (obj.shape === "ellipse") markup = `<ellipse cx="50" cy="50" rx="42" ry="42" ${common}/>`;
+        else markup = `<rect x="8" y="8" width="84" height="84" ${common}/>`;
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${markup}</svg>`;
+      }
+
+      function renderObjects() {
+        const layer = $("objects-layer");
+        const board = $("artboard");
+        layer.replaceChildren();
+        $("empty-board").classList.toggle("hidden", Boolean(state.background));
+        const whiteBackground = state.background === WHITE_BACKGROUND;
+        $("background-preview").classList.toggle("hidden", !state.background || whiteBackground);
+        board.classList.toggle("has-background", Boolean(state.background));
+        if (state.background && !whiteBackground) $("background-preview").src = state.background;
+
+        const scale = board.clientWidth / 1000;
+        const visibleObjects = state.objects.filter((obj) => obj.visible !== false);
+        visibleObjects.sort((a, b) => (a.z || 0) - (b.z || 0));
+        for (const obj of visibleObjects) {
+          if (obj.type === "qr" && (!state.qrEnabled || !state.qrGeneratedContent)) continue;
+          const el = document.createElement("div");
+          el.className = `design-object ${obj.type}${obj.id === state.selectedId ? " selected" : ""}`;
+          el.dataset.id = obj.id;
+          el.style.left = `${obj.x}%`;
+          el.style.top = `${obj.y}%`;
+          el.style.zIndex = String(obj.z || 1);
+          el.style.transform = `rotate(${obj.rotation || 0}deg)`;
+
+          if (obj.type === "image" || obj.type === "qr") {
+            const size = obj.type === "qr" ? state.qrSize : obj.w;
+            el.style.width = `${size}%`;
+            el.style.aspectRatio = obj.type === "qr" ? "1" : `${obj.w}/${obj.h}`;
+            el.style.height = obj.type === "qr" ? "" : `${obj.h}%`;
+            const image = document.createElement("img");
+            image.alt = obj.type === "qr" ? "Código QR" : "Imagen superpuesta";
+            if (obj.type === "qr") {
+              const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(state.qrGeneratedContent)}`;
+              image.src = qrUrl;
+              image.addEventListener("error", () => setStatus("No se pudo generar el QR. Revisa la conexión o el texto.", true), { once: true });
+            } else {
+              image.src = obj.src;
+            }
+            el.append(image);
+            if (obj.id === state.selectedId) {
+              const handle = document.createElement("span");
+              handle.className = "resize-handle";
+              el.append(handle);
+            }
+          } else if (obj.type === "shape") {
+            el.style.width = `${obj.w}%`;
+            el.style.height = `${obj.h}%`;
+            el.innerHTML = shapeSvgMarkup(obj, scale);
+            if (obj.id === state.selectedId) {
+              const handle = document.createElement("span");
+              handle.className = "resize-handle";
+              el.append(handle);
+            }
+          } else {
+            el.textContent = objectLabel(obj);
+            el.style.fontFamily = FONT_FAMILIES.includes(obj.fontFamily) ? `"${obj.fontFamily}"` : "Arial";
+            el.style.fontSize = `${(obj.fontSize || 32) * scale}px`;
+            el.style.color = obj.color || "#17243a";
+            el.style.fontWeight = obj.bold ? "700" : "400";
+            el.style.fontStyle = obj.italic ? "italic" : "normal";
+          }
+          el.addEventListener("pointerdown", beginObjectPointer);
+          el.addEventListener("click", (event) => {
+            event.stopPropagation();
+            selectObject(obj.id);
+          });
+          layer.append(el);
+        }
+        const selected = selectedObject();
+        const labels = { number: "folio", text: "texto", image: "imagen", qr: "QR", shape: "forma" };
+        $("selected-label").textContent = selected
+          ? `Seleccionado: ${selected.type === "shape" ? ({ line: "línea", arrow: "flecha", rect: "rectángulo", triangle: "triángulo", ellipse: "elipse" }[selected.shape] || "forma") : labels[selected.type]}`
+          : "Ningún elemento seleccionado";
+        renderSelectionControls();
+      }
+
+      function selectObject(id) {
+        state.selectedId = id;
+        renderObjects();
+      }
+
+      function reorderSelectedObject(destination) {
+        const obj = selectedObject();
+        if (!obj) return;
+        const ordered = state.objects
+          .map((item, index) => ({ item, index }))
+          .sort((a, b) => (a.item.z || 0) - (b.item.z || 0) || a.index - b.index)
+          .map(({ item }) => item);
+        const currentIndex = ordered.findIndex((item) => item.id === obj.id);
+        let nextIndex = currentIndex;
+        if (destination === "backward") nextIndex = Math.max(0, currentIndex - 1);
+        if (destination === "forward") nextIndex = Math.min(ordered.length - 1, currentIndex + 1);
+        if (destination === "back") nextIndex = 0;
+        if (destination === "front") nextIndex = ordered.length - 1;
+        if (nextIndex === currentIndex) return;
+
+        ordered.splice(currentIndex, 1);
+        ordered.splice(nextIndex, 0, obj);
+        ordered.forEach((item, index) => { item.z = index + 1; });
+        renderObjects();
+        renderSheetPreview();
+      }
+
+      function renderSelectionControls() {
+        const obj = selectedObject();
+        $("no-selection").classList.toggle("hidden", Boolean(obj));
+        $("selection-controls").classList.toggle("hidden", !obj);
+        if (!obj) {
+          renderedSelectionId = null;
+          return;
+        }
+        const selectionChanged = renderedSelectionId !== obj.id;
+        if (selectionChanged || document.activeElement !== $("object-rotation")) {
+          $("object-rotation").value = safeNumber(obj.rotation, 0, -180, 180);
+          $("object-rotation-label").value = `${safeNumber(obj.rotation, 0, -180, 180)}°`;
+        }
+        const textLike = obj.type === "text" || obj.type === "number";
+        const shapeLike = obj.type === "shape";
+        $("text-edit-field").classList.toggle("hidden", !textLike);
+        $("text-style-row").classList.toggle("hidden", !textLike);
+        $("text-format-row").classList.toggle("hidden", !textLike);
+        $("shape-controls").classList.toggle("hidden", !shapeLike);
+        if (selectionChanged || document.activeElement !== $("object-text")) {
+          $("object-text").value = obj.type === "text" ? obj.text : obj.type === "number" ? "Folio correlativo" : "";
+        }
+        $("object-text").readOnly = obj.type !== "text";
+        if (selectionChanged || document.activeElement !== $("object-font-size")) $("object-font-size").value = obj.fontSize || 32;
+        if (selectionChanged || document.activeElement !== $("object-color")) $("object-color").value = obj.color || "#17243a";
+        if (selectionChanged || document.activeElement !== $("object-font-family")) $("object-font-family").value = obj.fontFamily || "Arial";
+        $("font-family-field").classList.toggle("hidden", !textLike);
+        $("toggle-bold").classList.toggle("btn-green", Boolean(obj.bold));
+        $("toggle-italic").classList.toggle("btn-green", Boolean(obj.italic));
+        $("toggle-visibility").textContent = obj.visible === false ? "Mostrar elemento" : "Ocultar elemento";
+        if (shapeLike) {
+          const fillable = obj.shape !== "line" && obj.shape !== "arrow";
+          if (selectionChanged || document.activeElement !== $("shape-width")) $("shape-width").value = obj.w;
+          if (selectionChanged || document.activeElement !== $("shape-height")) $("shape-height").value = obj.h;
+          if (selectionChanged || document.activeElement !== $("shape-stroke")) $("shape-stroke").value = obj.color || "#17243a";
+          if (selectionChanged || document.activeElement !== $("shape-stroke-width")) $("shape-stroke-width").value = obj.strokeWidth || 2.5;
+          if (selectionChanged || document.activeElement !== $("shape-dotted")) $("shape-dotted").checked = Boolean(obj.dotted);
+          $("shape-filled").disabled = !fillable;
+          $("shape-fill").disabled = !fillable;
+          if (selectionChanged || document.activeElement !== $("shape-filled")) $("shape-filled").checked = fillable && Boolean(obj.filled);
+          if (selectionChanged || document.activeElement !== $("shape-fill")) $("shape-fill").value = obj.fillColor || "#8fe1c2";
+        }
+        renderedSelectionId = obj.id;
+      }
+
+      function renderSheetPreview() {
+        const plan = currentPlan();
+        const count = Math.max(1, state.copies);
+        const pages = plan.perPage ? Math.ceil(count / plan.perPage) : 0;
+        $("page-count").textContent = `${pages || "—"} ${pages === 1 ? "página" : "páginas"}`;
+        $("capacity").innerHTML = plan.perPage
+          ? `<b>${plan.perPage} talones por hoja</b><br>${plan.rows} filas × ${state.columns} ${state.columns === 1 ? "columna" : "columnas"} · ${pages} ${pages === 1 ? "página estimada" : "páginas estimadas"}`
+          : `<b>El tamaño no cabe en una hoja A4.</b><br>Reduce el ancho o el alto para poder imprimir.`;
+        $("sheet-summary").innerHTML = plan.perPage
+          ? `Se imprimirán <b>${count}</b> talones, desde <b>${escapeHtml(folio(state.start))}</b> hasta <b>${escapeHtml(folio(state.start + count - 1))}</b>.`
+          : "Corrige las dimensiones antes de imprimir.";
+
+        const paper = $("paper-preview");
+        paper.replaceChildren();
+        const grid = document.createElement("div");
+        grid.className = "paper-grid";
+        if (plan.perPage) {
+          const gap = state.columns === 2 ? 2 : 0;
+          const slotWidth = (100 - gap * (state.columns - 1)) / state.columns;
+          grid.style.gridTemplateColumns = `repeat(${state.columns}, ${slotWidth}%)`;
+          grid.style.columnGap = `${gap}%`;
+          grid.style.height = `${(state.standard ? 275 : 267) / 297 * 100}%`;
+          grid.style.rowGap = "0";
+          for (let i = 0; i < Math.min(plan.perPage, count, 16); i += 1) {
+            const slot = document.createElement("div");
+            slot.className = "paper-slot";
+            slot.style.aspectRatio = `${state.slipWidth}/${state.slipHeight}`;
+            slot.style.width = "100%";
+            if (state.background === WHITE_BACKGROUND) slot.style.background = "#fff";
+            const paperGridWidth = paper.clientWidth * 0.873;
+            const slotWidthPx = paperGridWidth * slotWidth / 100;
+            fillPreviewSlot(slot, state.start + i, slotWidthPx);
+            grid.append(slot);
+          }
+        }
+        paper.append(grid);
+      }
+
+      function fillPreviewSlot(slot, sequenceNumber, slotWidthPx) {
+        if (state.background && state.background !== WHITE_BACKGROUND) {
+          const bg = document.createElement("img");
+          bg.className = "slip-bg";
+          bg.src = state.background;
+          bg.alt = "";
+          slot.append(bg);
+        }
+        const sorted = state.objects.filter((obj) => obj.visible !== false).slice().sort((a, b) => (a.z || 0) - (b.z || 0));
+        for (const obj of sorted) {
+          if (obj.type === "qr" && (!state.qrEnabled || !state.qrGeneratedContent)) continue;
+          const item = document.createElement("div");
+          item.className = "paper-slot-object";
+          item.style.left = `${obj.x}%`;
+          item.style.top = `${obj.y}%`;
+          item.style.zIndex = String(obj.z || 1);
+          item.style.transform = `rotate(${obj.rotation || 0}deg)`;
+          if (obj.type === "text" || obj.type === "number") {
+            item.textContent = obj.type === "number" ? folio(sequenceNumber) : obj.text || "";
+            item.style.whiteSpace = "pre";
+            item.style.fontFamily = FONT_FAMILIES.includes(obj.fontFamily) ? `"${obj.fontFamily}"` : "Arial";
+            item.style.fontSize = `${(obj.fontSize || 32) * slotWidthPx / 1000}px`;
+            item.style.fontWeight = obj.bold ? "700" : "400";
+            item.style.fontStyle = obj.italic ? "italic" : "normal";
+            item.style.color = obj.color || "#17243a";
+          } else {
+            item.style.width = `${obj.type === "qr" ? state.qrSize : obj.w}%`;
+            item.style.height = `${obj.type === "qr" ? state.qrSize : obj.h}%`;
+            if (obj.type === "shape") item.innerHTML = shapeSvgMarkup(obj, slotWidthPx / 1000);
+            else {
+              const image = document.createElement("img");
+              image.alt = "";
+              image.src = obj.type === "qr"
+                ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(state.qrGeneratedContent)}`
+                : obj.src;
+              item.append(image);
+            }
+          }
+          slot.append(item);
+        }
+      }
+
+      function renderAll() {
+        syncInputs();
+        applyArtboardRatio();
+        renderObjects();
+        renderSheetPreview();
+      }
+
+      function beginObjectPointer(event) {
+        if (event.button !== 0) return;
+        event.stopPropagation();
+        const el = event.currentTarget;
+        const obj = state.objects.find((item) => item.id === el.dataset.id);
+        if (!obj) return;
+        state.selectedId = obj.id;
+        const resize = event.target.classList.contains("resize-handle");
+        const boardRect = $("artboard").getBoundingClientRect();
+        const startX = event.clientX;
+        const startY = event.clientY;
+        const original = { x: obj.x, y: obj.y, w: obj.w, h: obj.h };
+        const onMove = (moveEvent) => {
+          const dx = (moveEvent.clientX - startX) / boardRect.width * 100;
+          const dy = (moveEvent.clientY - startY) / boardRect.height * 100;
+          if (resize && (obj.type === "image" || obj.type === "qr" || obj.type === "shape")) {
+            const nextW = safeNumber((original.w || state.qrSize) + dx, 18, 5, 95);
+            if (obj.type === "qr") state.qrSize = nextW;
+            else if (obj.type === "shape") {
+              obj.w = safeNumber(original.w + dx, original.w, 2, 95);
+              obj.h = safeNumber(original.h + dy, original.h, 2, 95);
+            } else {
+              obj.w = nextW;
+              obj.h = safeNumber(original.h + dy, original.h, 5, 95);
+            }
+          } else {
+            obj.x = safeNumber(original.x + dx, original.x, 0, 100);
+            obj.y = safeNumber(original.y + dy, original.y, 0, 100);
+          }
+          if (obj.type === "qr" && resize) {
+            state.qrSize = safeNumber(state.qrSize, 18, 8, 40);
+            $("qr-size").value = state.qrSize;
+            $("qr-size-label").value = `${state.qrSize}%`;
+          }
+          renderObjects();
+          renderSheetPreview();
+        };
+        const onUp = () => {
+          document.removeEventListener("pointermove", onMove);
+          document.removeEventListener("pointerup", onUp);
+          document.removeEventListener("pointercancel", onUp);
+        };
+        document.addEventListener("pointermove", onMove);
+        document.addEventListener("pointerup", onUp);
+        document.addEventListener("pointercancel", onUp);
+      }
+
+      function addTextObject() {
+        const obj = {
+          id: nextObjectId("text"), type: "text", text: "Texto/Fecha/Número",
+          x: 10, y: 40, fontSize: 28, color: "#17243a", bold: false, italic: false,
+          z: Math.max(0, ...state.objects.map((item) => item.z || 0)) + 1, visible: true
+        };
+        state.objects.push(obj);
+        state.selectedId = obj.id;
+        renderAll();
+        $("object-text").focus();
+        $("object-text").select();
+      }
+
+      function addShapeObject(shape) {
+        const validShapes = ["line", "arrow", "rect", "triangle", "ellipse"];
+        if (!validShapes.includes(shape)) return;
+        const isLine = shape === "line" || shape === "arrow";
+        const obj = {
+          id: nextObjectId("shape"), type: "shape", shape,
+          x: isLine ? 38 : 40, y: isLine ? 42.5 : 22.5,
+          w: 22, h: isLine ? 15 : 55,
+          color: "#17243a", fillColor: "#8fe1c2", filled: false, strokeWidth: 2.5,
+          dotted: false,
+          z: Math.max(0, ...state.objects.map((item) => item.z || 0)) + 1, visible: true
+        };
+        state.objects.push(obj);
+        state.selectedId = obj.id;
+        renderAll();
+        setStatus(`${{ line: "Línea", arrow: "Flecha", rect: "Rectángulo", triangle: "Triángulo", ellipse: "Elipse" }[shape]} agregada. Arrástrala para ubicarla.`);
+      }
+
+      function addImageObject(dataUrl, description = "Imagen") {
+        const image = new Image();
+        image.onload = () => {
+          const ratio = image.naturalWidth / image.naturalHeight || 1;
+          const width = 12;
+          const height = Math.min(60, width / ratio * (1000 / (1000 / state.aspect)));
+          const obj = {
+            id: nextObjectId("image"), type: "image", src: dataUrl,
+            x: Math.max(0, (100 - width) / 2), y: Math.max(0, (100 - height) / 2),
+            w: width, h: height, z: Math.max(0, ...state.objects.map((item) => item.z || 0)) + 1, visible: true
+          };
+          state.objects.push(obj);
+          state.selectedId = obj.id;
+          renderAll();
+          setStatus(`${description} agregada. Arrástrala para ubicarla.`);
+        };
+        image.onerror = () => setStatus("No se pudo abrir la imagen seleccionada.", true);
+        image.src = dataUrl;
+      }
+
+      function addQrObject() {
+        let obj = state.objects.find((item) => item.type === "qr");
+        if (!obj) {
+          obj = {
+            id: "qr-code", type: "qr", x: 77, y: 15, z: Math.max(0, ...state.objects.map((item) => item.z || 0)) + 1,
+            visible: true
+          };
+          state.objects.push(obj);
+        }
+        state.selectedId = obj.id;
+        renderAll();
+      }
+
+      function removeSelected() {
+        const obj = selectedObject();
+        if (!obj) return;
+        if (obj.type === "number" && obj.id === "folio-main") {
+          setStatus("El folio principal no se puede eliminar; puedes ocultarlo desde el diseño.", true);
+          return;
+        }
+        state.objects = state.objects.filter((item) => item.id !== obj.id);
+        state.selectedId = null;
+        renderAll();
+      }
+
+      function updateObjectFields() {
+        const obj = selectedObject();
+        if (!obj) return;
+        if (obj.type === "text") obj.text = $("object-text").value;
+        if (obj.type === "text" || obj.type === "number") {
+          obj.fontSize = safeNumber($("object-font-size").value, 32, 6, 180);
+          obj.color = $("object-color").value;
+          obj.fontFamily = $("object-font-family").value;
+        }
+        if (obj.type === "shape") {
+          obj.w = safeNumber($("shape-width").value, obj.w, 2, 95);
+          obj.h = safeNumber($("shape-height").value, obj.h, 2, 95);
+          obj.color = $("shape-stroke").value;
+          obj.strokeWidth = safeNumber($("shape-stroke-width").value, 2.5, 1, 20);
+          obj.dotted = $("shape-dotted").checked;
+          obj.filled = $("shape-filled").checked;
+          obj.fillColor = $("shape-fill").value;
+        }
+        renderObjects();
+        renderSheetPreview();
+      }
+
+      function syncPrintDimensions() {
+        if (state.standard) {
+          state.slipWidth = 183.333;
+          state.slipHeight = 55;
+          state.columns = 1;
+        }
+        const plan = currentPlan();
+        if (!plan.fitsWidth || !plan.perPage) {
+          setStatus("Las dimensiones actuales no caben en una hoja A4.", true);
+        } else {
+          setStatus(state.background ? "Diseño listo para imprimir." : "Agrega una imagen de fondo para comenzar.");
+        }
+        renderSheetPreview();
+      }
+
+      function projectData() {
+        return {
+          format: "talonario-web",
+          version: 1,
+          background: state.background,
+          backgroundName: state.backgroundName,
+          aspect: state.aspect,
+          standard: state.standard,
+          slipWidth: state.slipWidth,
+          slipHeight: state.slipHeight,
+          columns: state.columns,
+          start: state.start,
+          copies: state.copies,
+          prefixEnabled: state.prefixEnabled,
+          prefix: state.prefix,
+          qrEnabled: state.qrEnabled,
+          qrContent: state.qrContent,
+          qrGeneratedContent: state.qrGeneratedContent,
+          qrSize: state.qrSize,
+          objects: state.objects
+        };
+      }
+
+      async function saveProject() {
+        const contents = JSON.stringify(projectData(), null, 2);
+        if (typeof window.showSaveFilePicker === "function") {
+          try {
+            const handle = await window.showSaveFilePicker({
+              suggestedName: "talonario.json",
+              types: [{
+                description: "Proyecto Talonario",
+                accept: { "application/json": [".json"] }
+              }]
+            });
+            const writable = await handle.createWritable();
+            await writable.write(contents);
+            await writable.close();
+            setStatus(`Proyecto guardado como ${handle.name}.`);
+          } catch (error) {
+            if (error.name !== "AbortError") {
+              setStatus(error.message || "No se pudo guardar el proyecto.", true);
+            }
+          }
+          return;
+        }
+
+        const blob = new Blob([contents], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "talonario.json";
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        setStatus("Este navegador no permite elegir dónde guardar; se descargó talonario.json.");
+      }
+
+      async function loadProject(data) {
+        if (!data || data.format !== "talonario-web" || data.version !== 1 || !Array.isArray(data.objects)) {
+          throw new Error("El archivo no es un proyecto compatible de Talonario.");
+        }
+        if (data.background && data.background !== WHITE_BACKGROUND && !isImageDataUrl(data.background) && !builtInBackgrounds.has(data.background)) {
+          throw new Error("El proyecto contiene una imagen de fondo inválida.");
+        }
+        const standard = Boolean(data.standard);
+        const nextState = {
+          background: data.background || "",
+          backgroundName: typeof data.backgroundName === "string" ? data.backgroundName : "",
+          standard,
+          aspect: safeNumber(data.aspect, 10 / 3, 0.2, 10),
+          slipWidth: standard ? 183.333 : safeNumber(data.slipWidth, 60, 20, 180),
+          slipHeight: standard ? 55 : safeNumber(data.slipHeight, 40, 10, 267),
+          columns: standard ? 1 : data.columns === 2 ? 2 : 1,
+          start: safeInteger(data.start, 1, 0, Number.MAX_SAFE_INTEGER),
+          copies: safeInteger(data.copies, 25, 1, 5000),
+          prefixEnabled: Boolean(data.prefixEnabled),
+          prefix: typeof data.prefix === "string" ? data.prefix.slice(0, 24) : "",
+          qrEnabled: Boolean(data.qrEnabled),
+          qrContent: typeof data.qrContent === "string" ? data.qrContent : "",
+          qrGeneratedContent: typeof data.qrGeneratedContent === "string"
+            ? data.qrGeneratedContent
+            : data.qrEnabled && typeof data.qrContent === "string" ? data.qrContent : "",
+          qrSize: safeNumber(data.qrSize, 18, 8, 40)
+        };
+        const usedIds = new Set();
+        nextState.objects = data.objects.map((obj, index) => {
+          if (!obj || typeof obj !== "object" || Array.isArray(obj)
+              || !["number", "text", "image", "qr", "shape"].includes(obj.type)) {
+            throw new Error(`Elemento inválido en la posición ${index + 1}.`);
+          }
+          if (obj.type === "image" && !isImageDataUrl(obj.src)) {
+            throw new Error(`La imagen superpuesta ${index + 1} no es válida.`);
+          }
+          if (obj.type === "shape" && !["line", "arrow", "rect", "triangle", "ellipse"].includes(obj.shape)) {
+            throw new Error(`La forma ${index + 1} no es válida.`);
+          }
+          const baseId = typeof obj.id === "string" && obj.id.trim() ? obj.id : `obj-${index + 1}`;
+          let id = baseId;
+          let suffix = 1;
+          while (usedIds.has(id)) id = `${baseId}-${suffix++}`;
+          usedIds.add(id);
+          return {
+            ...obj,
+            id,
+            text: typeof obj.text === "string" ? obj.text : "",
+            fontSize: safeNumber(obj.fontSize, 32, 6, 180),
+            color: /^#[0-9a-f]{6}$/i.test(obj.color || "") ? obj.color : "#17243a",
+            fillColor: /^#[0-9a-f]{6}$/i.test(obj.fillColor || "") ? obj.fillColor : "#8fe1c2",
+            filled: Boolean(obj.filled),
+            dotted: Boolean(obj.dotted),
+            strokeWidth: safeNumber(obj.strokeWidth, 2.5, 1, 20),
+            fontFamily: FONT_FAMILIES.includes(obj.fontFamily) ? obj.fontFamily : "Arial",
+            x: safeNumber(obj.x, 0, 0, 100),
+            y: safeNumber(obj.y, 0, 0, 100),
+            w: safeNumber(obj.w, 12, obj.type === "shape" ? 2 : 5, 95),
+            h: safeNumber(obj.h, 12, obj.type === "shape" ? 2 : 5, 95),
+            rotation: safeNumber(obj.rotation, 0, -180, 180),
+            z: safeInteger(obj.z, index + 1, 0, 10000),
+            visible: obj.visible !== false,
+            bold: Boolean(obj.bold),
+            italic: Boolean(obj.italic)
+          };
+        });
+        const imagesToValidate = [];
+        if (nextState.background && nextState.background !== WHITE_BACKGROUND) {
+          imagesToValidate.push({
+            src: nextState.background,
+            error: "No se pudo cargar el fondo incluido en el proyecto."
+          });
+        }
+        nextState.objects.forEach((obj, index) => {
+          if (obj.type === "image") {
+            imagesToValidate.push({
+              src: obj.src,
+              error: `No se pudo cargar la imagen superpuesta ${index + 1}.`
+            });
+          }
+        });
+        await Promise.all(imagesToValidate.map(({ src, error }) => new Promise((resolve, reject) => {
+          const image = new Image();
+          image.onload = resolve;
+          image.onerror = () => reject(new Error(error));
+          image.src = src;
+        })));
+        Object.assign(state, nextState);
+        state.nextId = 1;
+        state.selectedId = state.objects[0]?.id || null;
+        renderedSelectionId = null;
+        renderAll();
+        setStatus("Proyecto abierto correctamente.");
+      }
+
+      function slipContentHtml(sequenceNumber, continuationRow = false) {
+        const objects = state.objects
+          .filter((obj) => obj.visible !== false && (obj.type !== "qr" || (state.qrEnabled && state.qrGeneratedContent)))
+          .slice().sort((a, b) => (a.z || 0) - (b.z || 0));
+        const content = objects.map((obj) => {
+          const base = `left:${obj.x}%;top:${obj.y}%;z-index:${obj.z || 1};transform:rotate(${safeNumber(obj.rotation, 0, -180, 180)}deg);transform-origin:center center;`;
+          if (obj.type === "text" || obj.type === "number") {
+            const value = obj.type === "number" ? folio(sequenceNumber) : obj.text || "";
+            const fontSize = (obj.fontSize || 32) * state.slipWidth / 1000 * 96 / 25.4;
+            const fontFamily = FONT_FAMILIES.includes(obj.fontFamily) ? obj.fontFamily : "Arial";
+            const color = /^#[0-9a-f]{6}$/i.test(obj.color || "") ? obj.color : "#17243a";
+            return `<div class="print-object" style="${base}white-space:pre;font-family:'${fontFamily}';font-size:${fontSize}px;font-weight:${obj.bold ? 700 : 400};font-style:${obj.italic ? "italic" : "normal"};color:${color};line-height:1.12">${escapeHtml(value)}</div>`;
+          }
+          if (obj.type === "shape") {
+            const printScale = state.slipWidth * 96 / 25.4 / 1000;
+            return `<div class="print-object" style="${base}width:${obj.w}%;height:${obj.h}%">${shapeSvgMarkup(obj, printScale)}</div>`;
+          }
+          const width = obj.type === "qr" ? state.qrSize : obj.w;
+          const height = obj.type === "qr" ? width * state.slipWidth / state.slipHeight : obj.h;
+          const src = obj.type === "qr"
+            ? `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(state.qrGeneratedContent)}`
+            : obj.src;
+          return `<div class="print-object" style="${base}width:${width}%;height:${height}%"><img src="${src}" alt=""></div>`;
+        }).join("");
+        const bg = state.background && state.background !== WHITE_BACKGROUND ? `<img class="print-slip-bg" src="${state.background}" alt="">` : "";
+        return `${bg}${content}<span class="cut-marks${continuationRow ? " continuation-row" : ""}"></span>`;
+      }
+
+      function buildPrintDocument() {
+        const plan = currentPlan();
+        if (!plan.perPage) throw new Error("El tamaño del talón no cabe en una hoja A4. Revisa el ancho, alto y columnas.");
+        if (!state.background) throw new Error("Carga una imagen de fondo antes de imprimir.");
+        const count = safeInteger(state.copies, 0, 1, 5000);
+        if (!count) throw new Error("La cantidad de talones debe ser mayor que cero.");
+        const gap = state.columns === 2 ? 4 : 0;
+        const pages = [];
+        for (let startIndex = 0; startIndex < count; startIndex += plan.perPage) {
+          const slips = [];
+          const stop = Math.min(count, startIndex + plan.perPage);
+          for (let index = startIndex; index < stop; index += 1) {
+            const continuationRow = Math.floor((index - startIndex) / state.columns) > 0;
+            slips.push(`<div class="print-slip" style="width:${state.slipWidth}mm;height:${state.slipHeight}mm">${slipContentHtml(state.start + index, continuationRow)}</div>`);
+          }
+          const bottomMargin = state.standard ? 7 : 15;
+          pages.push(`<section class="print-page" style="padding-bottom:${bottomMargin}mm"><div class="print-grid" style="grid-template-columns:repeat(${state.columns},${state.slipWidth}mm);grid-auto-rows:${state.slipHeight}mm;column-gap:${gap}mm">${slips.join("")}</div></section>`);
+        }
+        return pages.join("");
+      }
+
+      function generateQr() {
+        const content = state.qrContent.trim();
+        if (!content) {
+          setStatus("Escribe el texto o la URL que quieres codificar en el QR.", true);
+          return;
+        }
+        state.qrGeneratedContent = content;
+        state.qrEnabled = true;
+        addQrObject();
+        setStatus("QR actualizado.");
+      }
+
+      async function printProject() {
+        try {
+          $("print-root").innerHTML = buildPrintDocument();
+          const images = Array.from($("print-root").querySelectorAll("img"));
+          await Promise.all(images.map((image) => {
+            if (image.complete && image.naturalWidth > 0) return Promise.resolve();
+            if (typeof image.decode === "function") return image.decode();
+            return new Promise((resolve, reject) => {
+              image.onload = resolve;
+              image.onerror = () => reject(new Error("No se pudo cargar una imagen del diseño o el código QR."));
+            });
+          }));
+          if (images.some((image) => image.naturalWidth === 0)) throw new Error("No se pudo cargar una imagen del diseño o el código QR.");
+          await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          setStatus("Abriendo la vista previa de impresión…");
+          window.print();
+          window.addEventListener("afterprint", () => { $("print-root").replaceChildren(); }, { once: true });
+        } catch (error) {
+          $("print-root").replaceChildren();
+          setStatus(error.message || "No se pudo preparar la impresión.", true);
+        }
+      }
+
+      $("background-file").addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        $("background-file-name").textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const background = String(reader.result);
+          const image = new Image();
+          image.onload = () => {
+            state.background = background;
+            state.backgroundName = file.name;
+            $("background-preset").value = "";
+            applyArtboardRatio();
+            renderObjects();
+            renderSheetPreview();
+            setStatus(`Fondo cargado: ${file.name}`);
+          };
+          image.onerror = () => setStatus("No se pudo abrir la imagen de fondo seleccionada.", true);
+          image.src = background;
+        };
+        reader.onerror = () => setStatus("No se pudo leer el archivo de imagen.", true);
+        reader.readAsDataURL(file);
+        event.target.value = "";
+      });
+
+      $("background-preset").addEventListener("change", (event) => {
+        const preset = event.target.value;
+        $("background-file").value = "";
+        $("background-file-name").textContent = "Ningún archivo seleccionado";
+        if (preset === WHITE_BACKGROUND) {
+          state.background = WHITE_BACKGROUND;
+          state.backgroundName = "Fondo en blanco";
+          renderObjects();
+          renderSheetPreview();
+          setStatus("Fondo en blanco seleccionado.");
+          return;
+        }
+        if (!builtInBackgrounds.has(preset)) return;
+        state.background = preset;
+        state.backgroundName = preset.split("/").pop();
+        renderObjects();
+        renderSheetPreview();
+        setStatus(`Fondo cargado: ${state.backgroundName}`);
+      });
+
+      $("use-image-ratio").addEventListener("click", () => {
+        if (!state.background || state.background === WHITE_BACKGROUND) return setStatus("Primero carga una imagen de fondo.", true);
+        const img = $("background-preview");
+        if (img.naturalWidth && img.naturalHeight) {
+          state.aspect = img.naturalWidth / img.naturalHeight;
+          applyArtboardRatio();
+          setStatus("Proporción del área de diseño ajustada a la imagen.");
+        }
+      });
+      $("reset-ratio").addEventListener("click", () => {
+        state.aspect = 10 / 3;
+        applyArtboardRatio();
+        setStatus("Proporción del área de diseño: 10:3.");
+      });
+      $("add-text").addEventListener("click", addTextObject);
+      $("add-image").addEventListener("click", () => $("overlay-file").click());
+      $("decoration-upload").addEventListener("click", () => $("decoration-file").click());
+      $("decoration-file").addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => addImageObject(String(reader.result), file.name);
+        reader.onerror = () => setStatus("No se pudo leer la imagen decorativa.", true);
+        reader.readAsDataURL(file);
+        event.target.value = "";
+      });
+      $("overlay-file").addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => addImageObject(String(reader.result));
+        reader.onerror = () => setStatus("No se pudo leer la imagen superpuesta.", true);
+        reader.readAsDataURL(file);
+        event.target.value = "";
+      });
+      $("add-copy-number").addEventListener("click", () => {
+        const main = state.objects.find((obj) => obj.id === "folio-main");
+        const duplicate = state.objects.find((obj) => obj.id === "folio-copy");
+        if (duplicate) {
+          duplicate.visible = true;
+          state.selectedId = duplicate.id;
+        } else {
+          state.objects.push({
+            id: "folio-copy", type: "number",
+            x: main ? Math.min(85, main.x + 45) : 55, y: main ? main.y : 22,
+            fontSize: main ? main.fontSize : 34, color: main ? main.color : "#17243a",
+            bold: true, italic: false,
+            z: Math.max(0, ...state.objects.map((obj) => obj.z || 0)) + 1, visible: true
+          });
+          state.selectedId = "folio-copy";
+        }
+        renderAll();
+      });
+      $("artboard").addEventListener("pointerdown", (event) => {
+        if (event.target === $("artboard") || event.target === $("background-preview") || event.target === $("empty-board")) {
+          state.selectedId = null;
+          renderObjects();
+        }
+      });
+      $("start-number").addEventListener("input", (event) => {
+        state.start = safeInteger(event.target.value, state.start, 0, Number.MAX_SAFE_INTEGER);
+        renderObjects(); renderSheetPreview();
+      });
+      $("copy-count").addEventListener("input", (event) => {
+        state.copies = safeInteger(event.target.value, state.copies, 1, 5000);
+        renderSheetPreview();
+      });
+      $("use-prefix").addEventListener("change", (event) => {
+        state.prefixEnabled = event.target.checked;
+        renderObjects(); renderSheetPreview();
+      });
+      $("prefix").addEventListener("input", (event) => {
+        state.prefix = event.target.value.slice(0, 24);
+        renderObjects(); renderSheetPreview();
+      });
+      $("qr-enabled").addEventListener("change", (event) => {
+        state.qrEnabled = event.target.checked;
+        if (state.qrEnabled && state.qrGeneratedContent) addQrObject();
+        else if (state.qrEnabled) {
+          renderObjects(); renderSheetPreview();
+          setStatus("Ingresa el contenido y pulsa «Generar / actualizar QR».", true);
+        }
+        else { renderObjects(); renderSheetPreview(); }
+      });
+      $("qr-content").addEventListener("input", (event) => {
+        state.qrContent = event.target.value;
+      });
+      $("qr-content").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") generateQr();
+      });
+      $("generate-qr").addEventListener("click", generateQr);
+      $("qr-size").addEventListener("input", (event) => {
+        state.qrSize = safeNumber(event.target.value, 18, 8, 40);
+        $("qr-size-label").value = `${state.qrSize}%`;
+        renderObjects(); renderSheetPreview();
+      });
+      $("standard-size").addEventListener("click", () => {
+        state.standard = true;
+        state.slipWidth = 183.333;
+        state.slipHeight = 55;
+        state.columns = 1;
+        syncInputs(); syncPrintDimensions();
+      });
+      $("custom-size").addEventListener("click", () => {
+        state.standard = false;
+        state.slipWidth = 60;
+        state.slipHeight = 40;
+        state.columns = 1;
+        syncInputs(); syncPrintDimensions();
+      });
+      $("slip-width").addEventListener("input", (event) => {
+        state.standard = false;
+        state.slipWidth = safeNumber(event.target.value, 60, 20, 180);
+        syncInputs(); syncPrintDimensions();
+      });
+      $("slip-height").addEventListener("input", (event) => {
+        state.standard = false;
+        state.slipHeight = safeNumber(event.target.value, 40, 10, 267);
+        syncInputs(); syncPrintDimensions();
+      });
+      $("columns").addEventListener("change", (event) => {
+        state.standard = false;
+        state.columns = Number(event.target.value) === 2 ? 2 : 1;
+        syncInputs(); syncPrintDimensions();
+      });
+      $("object-text").addEventListener("input", updateObjectFields);
+      $("object-font-size").addEventListener("input", updateObjectFields);
+      $("object-color").addEventListener("input", updateObjectFields);
+      $("object-font-family").addEventListener("change", updateObjectFields);
+      ["shape-width", "shape-height", "shape-stroke", "shape-stroke-width", "shape-dotted", "shape-filled", "shape-fill"].forEach((id) => {
+        $(id).addEventListener(id === "shape-dotted" || id === "shape-filled" ? "change" : "input", updateObjectFields);
+      });
+      $("object-rotation").addEventListener("input", (event) => {
+        const obj = selectedObject();
+        if (!obj) return;
+        obj.rotation = safeNumber(event.target.value, 0, -180, 180);
+        $("object-rotation-label").value = `${obj.rotation}°`;
+        renderObjects();
+        renderSheetPreview();
+      });
+      $("toggle-bold").addEventListener("click", () => {
+        const obj = selectedObject();
+        if (obj) { obj.bold = !obj.bold; renderObjects(); renderSheetPreview(); }
+      });
+      $("toggle-italic").addEventListener("click", () => {
+        const obj = selectedObject();
+        if (obj) { obj.italic = !obj.italic; renderObjects(); renderSheetPreview(); }
+      });
+      $("delete-object").addEventListener("click", removeSelected);
+      $("toggle-visibility").addEventListener("click", () => {
+        const obj = selectedObject();
+        if (!obj) return;
+        obj.visible = obj.visible === false;
+        renderObjects();
+        renderSheetPreview();
+      });
+      $("move-backward").addEventListener("click", () => reorderSelectedObject("backward"));
+      $("move-forward").addEventListener("click", () => reorderSelectedObject("forward"));
+      $("move-to-back").addEventListener("click", () => reorderSelectedObject("back"));
+      $("move-to-front").addEventListener("click", () => reorderSelectedObject("front"));
+      $("save-project").addEventListener("click", saveProject);
+      $("open-project").addEventListener("click", () => $("project-file").click());
+      $("project-file").addEventListener("change", async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        try {
+          await loadProject(JSON.parse(await file.text()));
+        } catch (error) {
+          setStatus(error.message || "No se pudo abrir el proyecto.", true);
+        } finally {
+          event.target.value = "";
+        }
+      });
+      $("new-project").addEventListener("click", () => {
+        if (!confirm("¿Crear un proyecto nuevo? Los cambios no guardados se perderán.")) return;
+        state.background = "";
+        state.backgroundName = "";
+        state.aspect = 10 / 3;
+        state.standard = true;
+        state.slipWidth = 183.333;
+        state.slipHeight = 55;
+        state.columns = 1;
+        state.start = 1;
+        state.copies = 25;
+        state.prefixEnabled = false;
+        state.prefix = "A";
+        state.qrEnabled = false;
+        state.qrContent = "";
+        state.qrGeneratedContent = "";
+        state.qrSize = 18;
+        state.objects = [createNumberObject()];
+        state.selectedId = "folio-main";
+        state.nextId = 1;
+        renderedSelectionId = null;
+        renderAll();
+        setStatus("Proyecto nuevo. Carga una imagen de fondo para comenzar.");
+      });
+      $("print-button").addEventListener("click", printProject);
+      window.addEventListener("resize", () => {
+        renderObjects();
+        renderSheetPreview();
+      });
+      window.addEventListener("afterprint", () => $("print-root").replaceChildren());
+
+      renderAll();
+      syncPrintDimensions();
+    })();
+  </script>
+</body>
+</html>
