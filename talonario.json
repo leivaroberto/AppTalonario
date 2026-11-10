@@ -1,0 +1,113 @@
+{
+  "format": "talonario-web",
+  "version": 1,
+  "background": "fondos/fondo-cumpleanos.svg",
+  "backgroundName": "fondo-cumpleanos.svg",
+  "aspect": 3.3333333333333335,
+  "standard": true,
+  "slipWidth": 183.333,
+  "slipHeight": 55,
+  "columns": 1,
+  "start": 1,
+  "copies": 25,
+  "prefixEnabled": true,
+  "prefix": "A",
+  "qrEnabled": true,
+  "qrContent": "https://leivaroberto.github.io/AppTalonario/",
+  "qrGeneratedContent": "https://leivaroberto.github.io/AppTalonario/",
+  "qrSize": 8,
+  "objects": [
+    {
+      "id": "folio-main",
+      "type": "number",
+      "x": 65.74495976105533,
+      "y": 75.10101638664179,
+      "fontSize": 34,
+      "color": "#17243a",
+      "bold": true,
+      "italic": false,
+      "z": 2,
+      "visible": true
+    },
+    {
+      "id": "folio-copy",
+      "type": "number",
+      "x": 91.23911059487264,
+      "y": 24.655050819332104,
+      "fontSize": 21,
+      "color": "#17243a",
+      "bold": true,
+      "italic": false,
+      "z": 3,
+      "visible": true,
+      "fontFamily": "Arial",
+      "rotation": -90
+    },
+    {
+      "id": "image-1",
+      "type": "image",
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48ZWxsaXBzZSBjeD0iNjIiIGN5PSI0OCIgcng9IjM5IiByeT0iNDMiIGZpbGw9IiM4MGM3ZGQiIHN0cm9rZT0iIzRiOWViOCIgc3Ryb2tlLXdpZHRoPSI0Ii8+PHBhdGggZmlsbD0iIzRiOWViOCIgZD0ibTU1IDg5IDkgMTIgOS0xMnoiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiM4NTgzOGQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIzIiBkPSJNNjQgMTAxYy04IDEwIDEwIDEyIDAgMjMiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNjNmVkZjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI2IiBkPSJNNDIgMjVjLTggOS0xMSAyMC0xMSAyOCIvPjwvc3ZnPg==",
+      "x": 64.57579025968639,
+      "y": 20.264813662449008,
+      "w": 10.539782626731935,
+      "h": 28.0522713130056,
+      "z": 4,
+      "visible": true
+    },
+    {
+      "id": "image-2",
+      "type": "image",
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48ZWxsaXBzZSBjeD0iNjIiIGN5PSI0OCIgcng9IjM5IiByeT0iNDMiIGZpbGw9IiM4MGM3ZGQiIHN0cm9rZT0iIzRiOWViOCIgc3Ryb2tlLXdpZHRoPSI0Ii8+PHBhdGggZmlsbD0iIzRiOWViOCIgZD0ibTU1IDg5IDkgMTIgOS0xMnoiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiM4NTgzOGQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIzIiBkPSJNNjQgMTAxYy04IDEwIDEwIDEyIDAgMjMiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNjNmVkZjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI2IiBkPSJNNDIgMjVjLTggOS0xMSAyMC0xMSAyOCIvPjwvc3ZnPg==",
+      "x": 69.35468348129098,
+      "y": 19.379796722671646,
+      "w": 9.079565253463867,
+      "h": 25.839728963562195,
+      "z": 5,
+      "visible": true
+    },
+    {
+      "id": "image-3",
+      "type": "image",
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48ZWxsaXBzZSBjeD0iNjIiIGN5PSI0OCIgcng9IjM5IiByeT0iNDMiIGZpbGw9IiM4MGM3ZGQiIHN0cm9rZT0iIzRiOWViOCIgc3Ryb2tlLXdpZHRoPSI0Ii8+PHBhdGggZmlsbD0iIzRiOWViOCIgZD0ibTU1IDg5IDkgMTIgOS0xMnoiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiM4NTgzOGQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIzIiBkPSJNNjQgMTAxYy04IDEwIDEwIDEyIDAgMjMiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNjNmVkZjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI2IiBkPSJNNDIgMjVjLTggOS0xMSAyMC0xMSAyOCIvPjwvc3ZnPg==",
+      "x": 68.15996017588982,
+      "y": 6.104542626011202,
+      "w": 9.079565253463867,
+      "h": 26.282237433450874,
+      "z": 6,
+      "visible": true
+    },
+    {
+      "id": "qr-code",
+      "type": "qr",
+      "x": 52.84003982411018,
+      "y": 64.56094862753233,
+      "z": 7,
+      "visible": true
+    },
+    {
+      "id": "text-4",
+      "type": "text",
+      "text": "Vení a mi cumpleaños",
+      "x": 12.920434746536133,
+      "y": 10.794440987347025,
+      "fontSize": 46,
+      "color": "#17243a",
+      "bold": false,
+      "italic": false,
+      "z": 8,
+      "visible": true,
+      "fontFamily": "Comic Sans MS"
+    },
+    {
+      "id": "image-6",
+      "type": "image",
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48cGF0aCBmaWxsPSIjZjBiYzUyIiBzdHJva2U9IiNkMzk2MzAiIHN0cm9rZS13aWR0aD0iMyIgZD0ibTM3IDEyIDcgMTggMTkgMi0xNCAxMiA0IDE4LTE2LTEwLTE2IDEwIDQtMTgtMTQtMTIgMTktMnptNTUgNDggNiAxNSAxNiAyLTEyIDEwIDQgMTUtMTQtOC0xNCA4IDMtMTUtMTEtMTAgMTUtMnoiLz48cGF0aCBmaWxsPSIjODhiZWQ2IiBkPSJtODMgMTQgNCAxMCAxMCAxLTggNyAyIDEwLTgtNS05IDUgMi0xMC04LTcgMTEtMXoiLz48L3N2Zz4=",
+      "x": 4.574130921762212,
+      "y": 54.337965843877484,
+      "w": 12,
+      "h": 40,
+      "z": 9,
+      "visible": true
+    }
+  ]
+}

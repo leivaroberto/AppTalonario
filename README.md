@@ -8,8 +8,9 @@ Abre `index.html` con un navegador moderno. Para imprimir o cargar imágenes y p
 
 ## Funciones
 
+- Seis plantillas completas, editables e imprimibles: rifa solidaria, cumpleaños, bingo, evento escolar, comida solidaria y concierto. Se eligen desde el botón **Plantillas** en una ventana aparte; cada una incluye un fondo propio y numeración duplicada.
 - Imagen de fondo o fondo en blanco y área de diseño de proporción 10:3 o ajustada a la imagen.
-- Veintitrés fondos de ejemplo listos para usar, incluidos en la carpeta `fondos/`.
+- Veintinueve fondos de ejemplo listos para usar, incluidos en la carpeta `fondos/`.
 - Textos y folios arrastrables, con 30 opciones de tipografía, tamaño, color, negrita y cursiva. La disponibilidad visual de algunas fuentes depende del sistema operativo.
 - Formas vectoriales insertables (línea, flecha, rectángulo, triángulo y elipse), movibles, redimensionables y editables en color, grosor en píxeles de diseño, trazo punteado y relleno; se conservan en proyectos y al imprimir.
 - Los controles del elemento seleccionado aparecen debajo del área de diseño para editarlos sin apartarse del talón; cualquier elemento se puede mover una capa adelante o atrás, o directamente al frente o al fondo.
@@ -22,10 +23,13 @@ Abre `index.html` con un navegador moderno. Para imprimir o cargar imágenes y p
 - Tamaño de impresión estándar (183,3 × 55 mm) o personalizado, una o dos columnas.
 - Vista de distribución A4, marcas de corte en L en el perímetro y en T entre filas de talones, y vista previa/impresión del navegador.
 - Guardado y apertura de proyectos `.json`; las imágenes se incluyen dentro del archivo. En navegadores compatibles, Guardar permite elegir la ubicación; en los demás, descarga el archivo.
+- Deshacer y rehacer hasta 50 cambios, con botones y atajos `Ctrl+Z`, `Ctrl+Y` o `Ctrl+Mayús+Z`.
+- Guardado automático del borrador en el almacenamiento local del navegador y recuperación al volver a abrir la aplicación.
 
 ## Notas
 
 - El proyecto se guarda en el dispositivo desde el que se usa; esta versión no tiene cuentas ni almacenamiento en línea.
+- El borrador automático se almacena localmente mediante IndexedDB; no reemplaza la descarga de proyectos `.json` para hacer copias o trasladarlos a otro dispositivo.
 - Los fondos de ejemplo se guardan como referencia a `fondos/`; conserva esa carpeta junto a `index.html` para que sigan disponibles. Las imágenes propias sí quedan incorporadas en el archivo del proyecto.
 - Para usar una imagen SVG de `decoraciones/`, selecciónala con **Subir imagen propia**. En la biblioteca, usa **Tipo de decoración** para filtrar los adornos por categoría.
 - La generación del QR usa `api.qrserver.com`, como la rutina VB.NET original. El texto o URL del QR se envía a ese servicio y se necesita conexión a internet para generarlo.

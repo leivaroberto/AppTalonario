@@ -56,6 +56,7 @@
       font-weight: 650;
     }
     .top-actions button:hover { background: #ffffff14; }
+    .top-actions button:disabled { cursor: not-allowed; opacity: .48; }
     .top-actions .primary {
       border-color: #8fe1c2;
       color: #142a2a;
@@ -179,6 +180,11 @@
     .btn:hover { border-color: #96b5aa; background: #f6fbf9; }
     .btn-green { border-color: #c4e7d9; color: #216d58; background: #effaf5; }
     .btn-red { color: #b34242; }
+    .template-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .template-card { display: flex; flex-direction: column; align-items: flex-start; padding: 10px; border: 1px solid #d6e9df; border-radius: 9px; background: linear-gradient(135deg, #f3faf6, #fffdf7); }
+    .template-card p { flex: 1; margin: 0 0 9px; color: #647568; font-size: 10px; line-height: 1.45; }
+    .template-card p strong { color: #27354b; font-size: 11px; }
+    .template-card .btn { width: 100%; padding: 0 6px; font-size: 10px; }
     .button-row { display: flex; gap: 7px; flex-wrap: wrap; }
     .button-row .btn { flex: 1; }
     .shape-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 10px; }
@@ -215,6 +221,27 @@
     .editor-actions { justify-content: flex-end; }
     .editor-actions .btn { flex: 0 1 auto; }
     .hidden { display: none !important; }
+    .template-dialog {
+      width: min(760px, calc(100vw - 32px));
+      max-height: min(720px, calc(100vh - 32px));
+      padding: 22px;
+      border: 1px solid #e0e5ee;
+      border-radius: 14px;
+      color: #17243a;
+      background: #fff;
+      box-shadow: 0 20px 70px #17243a40;
+    }
+    .template-dialog::backdrop { background: #17243a80; backdrop-filter: blur(3px); }
+    .template-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    .template-dialog-head h2 { margin: 0; font-size: 19px; }
+    .template-dialog-head p { margin: 5px 0 0; color: #778398; font-size: 12px; }
+    .template-dialog-close { flex: 0 0 auto; width: 34px; height: 34px; border: 1px solid #d8e0e9; border-radius: 8px; color: #536176; background: #fff; font-size: 18px; }
+    .template-dialog-close:hover { background: #f6f8fb; }
+    .template-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; overflow-y: auto; max-height: min(520px, calc(100vh - 150px)); padding: 2px; }
+    .template-card { display: flex; flex-direction: column; align-items: flex-start; min-height: 112px; padding: 14px; border: 1px solid #d6e9df; border-radius: 9px; background: linear-gradient(135deg, #f3faf6, #fffdf7); }
+    .template-card p { flex: 1; margin: 0 0 12px; color: #647568; font-size: 11px; line-height: 1.45; }
+    .template-card p strong { color: #27354b; font-size: 12px; }
+    .template-card .btn { width: 100%; }
     .workspace { min-width: 0; padding: 24px clamp(16px, 3vw, 42px) 36px; }
     .workspace-layout {
       display: grid;
@@ -235,6 +262,8 @@
     .workspace-head p { margin: 5px 0 0; color: #778398; font-size: 12px; }
     .status { max-width: 48%; color: #658073; font-size: 11px; text-align: right; }
     .status.error { color: #bb4444; }
+    .autosave-status { margin-top: 5px; color: #778398; font-size: 10px; text-align: right; }
+    .autosave-status.error { color: #bb4444; }
     .work-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(200px, .75fr); gap: 18px; align-items: start; }
     .work-card {
       padding: 17px;
@@ -381,6 +410,8 @@
       .selected-editor .row > .field { min-width: 130px; }
       .workspace-head { flex-direction: column; }
       .status { max-width: none; text-align: left; }
+      .template-dialog { padding: 16px; }
+      .template-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media print {
@@ -444,6 +475,9 @@
       <button id="new-project">Nuevo</button>
       <button id="open-project">Abrir proyecto</button>
       <button id="save-project">Guardar proyecto</button>
+      <button id="open-templates" type="button">Plantillas</button>
+      <button id="undo-button" type="button" title="Deshacer (Ctrl+Z)" disabled>Deshacer</button>
+      <button id="redo-button" type="button" title="Rehacer (Ctrl+Y)" disabled>Rehacer</button>
       <button id="print-button" class="primary">Vista previa / Imprimir</button>
     </nav>
   </header>
@@ -560,7 +594,10 @@
     <section class="workspace">
       <div class="workspace-head">
         <div><h1>Diseño del talón</h1><p>Prepara una plantilla y genera folios consecutivos listos para imprimir.</p></div>
-        <div id="status" class="status" role="status">Carga una imagen de fondo para comenzar.</div>
+        <div>
+          <div id="status" class="status" role="status">Carga una imagen de fondo para comenzar.</div>
+          <div id="autosave-status" class="autosave-status" role="status">Guardado automático listo.</div>
+        </div>
       </div>
       <div class="workspace-layout">
         <div class="work-grid">
@@ -655,6 +692,41 @@
       </div>
     </section>
   </main>
+  <dialog id="template-dialog" class="template-dialog" aria-labelledby="template-dialog-title">
+    <div class="template-dialog-head">
+      <div>
+        <h2 id="template-dialog-title">Empieza con un ejemplo</h2>
+        <p>Elige una plantilla y personaliza sus textos, folios y detalles.</p>
+      </div>
+      <button id="close-templates" class="template-dialog-close" type="button" aria-label="Cerrar plantillas">×</button>
+    </div>
+    <div class="template-grid">
+      <div class="template-card">
+        <p><strong>Rifa solidaria</strong><br>Premio, fecha y organizador.</p>
+        <button class="btn btn-green" data-template="raffle" type="button">Usar plantilla</button>
+      </div>
+      <div class="template-card">
+        <p><strong>Fiesta de cumpleaños</strong><br>Invitación y recuerdo de fiesta.</p>
+        <button class="btn btn-green" data-template="birthday" type="button">Usar plantilla</button>
+      </div>
+      <div class="template-card">
+        <p><strong>Bingo</strong><br>Noche de bingo con premio.</p>
+        <button class="btn btn-green" data-template="bingo" type="button">Usar plantilla</button>
+      </div>
+      <div class="template-card">
+        <p><strong>Evento escolar</strong><br>Entrada para festival escolar.</p>
+        <button class="btn btn-green" data-template="school" type="button">Usar plantilla</button>
+      </div>
+      <div class="template-card">
+        <p><strong>Comida solidaria</strong><br>Vale numerado para colaborar.</p>
+        <button class="btn btn-green" data-template="food" type="button">Usar plantilla</button>
+      </div>
+      <div class="template-card">
+        <p><strong>Concierto</strong><br>Entrada musical numerada.</p>
+        <button class="btn btn-green" data-template="concert" type="button">Usar plantilla</button>
+      </div>
+    </div>
+  </dialog>
   <input id="project-file" type="file" accept=".json,application/json" class="hidden">
   <input id="overlay-file" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.bmp,.svg,image/jpeg,image/png,image/webp,image/gif,image/bmp,image/svg+xml" class="hidden">
   <input id="decoration-file" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.bmp,.svg,image/jpeg,image/png,image/webp,image/gif,image/bmp,image/svg+xml" class="hidden">
@@ -888,6 +960,17 @@
         objects: []
       };
       let renderedSelectionId = null;
+      const HISTORY_LIMIT = 50;
+      const DRAFT_DATABASE = "apptalonario";
+      const DRAFT_STORE = "drafts";
+      const DRAFT_KEY = "current";
+      let undoStack = [];
+      let redoStack = [];
+      let historySnapshot = null;
+      let historyTimer = null;
+      let draftTimer = null;
+      let draftDatabasePromise = null;
+      let historyBusy = false;
 
       function createNumberObject() {
         return {
@@ -903,6 +986,146 @@
           visible: true
         };
       }
+
+      const EXAMPLE_TEMPLATES = {
+        raffle: {
+          name: "Rifa solidaria",
+          background: "fondos/fondo-rifa-solidaria.svg",
+          title: ["RIFA SOLIDARIA", 43, "#fffdf5"],
+          subtitle: "UNA OPORTUNIDAD PARA AYUDAR",
+          detailLabel: "PREMIO",
+          detail: "CANASTA FAMILIAR",
+          date: "Sorteo: 20 de diciembre",
+          organizer: "Organiza: Escuela N.º 12",
+          thanks: "¡Gracias por ayudar!",
+          mainLabel: "TU NÚMERO",
+          stubLabel: "COPIA",
+          stubMeta: "Sorteo",
+          palette: { accent: "#8a6c2e", ink: "#205447", body: "#33473f", muted: "#5e604f" }
+        },
+        birthday: {
+          name: "Fiesta de cumpleaños",
+          background: "fondos/fondo-cumpleanos-plantilla.svg",
+          title: ["¡FELIZ CUMPLEAÑOS!", 37, "#fff9f2"],
+          subtitle: "UNA FIESTA PARA CELEBRAR",
+          detailLabel: "TE INVITAMOS A",
+          detail: "MI CUMPLEAÑOS",
+          date: "Sábado 14 de marzo · 16:00",
+          organizer: "Lugar: Salón Los Aromos",
+          thanks: "¡Te esperamos!",
+          mainLabel: "INVITACIÓN",
+          stubLabel: "RECUERDO",
+          stubMeta: "Fiesta",
+          palette: { accent: "#9b5268", ink: "#a44868", body: "#694754", muted: "#815965" }
+        },
+        bingo: {
+          name: "Bingo",
+          background: "fondos/fondo-bingo.svg",
+          title: ["GRAN NOCHE DE BINGO", 37, "#fffdf5"],
+          subtitle: "JUGAMOS, COMPARTIMOS Y GANAMOS",
+          detailLabel: "PREMIO MAYOR",
+          detail: "ORDEN DE COMPRA",
+          date: "Viernes 22 de agosto · 20:00",
+          organizer: "Lugar: Club del Barrio",
+          thanks: "¡Mucha suerte!",
+          mainLabel: "TU NÚMERO",
+          stubLabel: "CONTROL",
+          stubMeta: "Bingo",
+          palette: { accent: "#a17b2e", ink: "#3c397c", body: "#41405f", muted: "#625d87" }
+        },
+        school: {
+          name: "Evento escolar",
+          background: "fondos/fondo-evento-escolar.svg",
+          title: ["FESTIVAL ESCOLAR", 41, "#fffdf5"],
+          subtitle: "MÚSICA · JUEGOS · COMUNIDAD",
+          detailLabel: "ENTRADA GENERAL",
+          detail: "FESTIVAL DE PRIMAVERA",
+          date: "Sábado 18 de octubre · 15:00",
+          organizer: "Lugar: Escuela N.º 12",
+          thanks: "¡Te esperamos!",
+          mainLabel: "N.º DE ENTRADA",
+          stubLabel: "ACCESO",
+          stubMeta: "Festival",
+          palette: { accent: "#97722c", ink: "#315c78", body: "#3f5b5d", muted: "#597a70" }
+        },
+        food: {
+          name: "Comida solidaria",
+          background: "fondos/fondo-comida-solidaria.svg",
+          title: ["COMIDA SOLIDARIA", 40, "#fff9ef"],
+          subtitle: "UN PLATO, MUCHAS MANOS",
+          detailLabel: "MENÚ SOLIDARIO",
+          detail: "LOCRO + PAN CASERO",
+          date: "Domingo 9 de noviembre · 12:30",
+          organizer: "Retirar en: Salón Comunitario",
+          thanks: "¡Gracias por colaborar!",
+          mainLabel: "TU NÚMERO",
+          stubLabel: "CONTROL",
+          stubMeta: "Menú",
+          palette: { accent: "#a66b35", ink: "#a94f32", body: "#654b38", muted: "#806044" }
+        },
+        concert: {
+          name: "Concierto",
+          background: "fondos/fondo-concierto.svg",
+          title: ["NOCHE DE CONCIERTO", 39, "#fff8ff"],
+          subtitle: "MÚSICA EN VIVO · UNA NOCHE ÚNICA",
+          detailLabel: "ARTISTA INVITADO",
+          detail: "LOS DEL BARRIO",
+          date: "Sábado 6 de diciembre · 21:00",
+          organizer: "Lugar: Teatro Central",
+          thanks: "¡Nos vemos ahí!",
+          mainLabel: "N.º DE ENTRADA",
+          stubLabel: "ACCESO",
+          stubMeta: "General",
+          palette: { accent: "#aa76c6", ink: "#56366e", body: "#51445d", muted: "#6d5878" }
+        }
+      };
+
+      function createTemplateObjects(template) {
+        const text = (id, value, x, y, fontSize, color, bold = false) => ({
+          id, type: "text", text: value, x, y, fontSize, color,
+          fontFamily: "Arial", bold, italic: false, z: 2, visible: true
+        });
+        const { accent, ink, body, muted } = template.palette;
+        return [
+          { ...createNumberObject(), x: 68, y: 73, fontSize: 33, color: ink, z: 3 },
+          {
+            id: "folio-copy", type: "number", x: 84, y: 39, fontSize: 27,
+            color: ink, bold: true, italic: false, z: 3, visible: true
+          },
+          text("template-title", template.title[0], 5, 6, template.title[1], template.title[2], true),
+          text("template-subtitle", template.subtitle, 5.5, 20, 17, "#f7ead8", true),
+          text("template-detail-label", template.detailLabel, 6, 35, 16, accent, true),
+          text("template-detail", template.detail, 6, 43, 34, ink, true),
+          text("template-date", template.date, 6, 62, 20, body),
+          text("template-organizer", template.organizer, 6, 78, 19, body, true),
+          text("template-thanks", template.thanks, 38, 78, 17, accent, true),
+          text("template-main-number-label", template.mainLabel, 68, 64, 14, accent, true),
+          text("template-stub-label", template.stubLabel, 84, 22, 16, accent, true),
+          text("template-stub-date", template.stubMeta, 84, 57, 14, muted, true)
+        ];
+      }
+
+      function hasExistingProjectContent() {
+        const defaultNumber = createNumberObject();
+        return Boolean(
+          state.background
+          || state.objects.length !== 1
+          || JSON.stringify(state.objects[0]) !== JSON.stringify(defaultNumber)
+          || state.aspect !== 10 / 3
+          || !state.standard
+          || state.slipWidth !== 183.333
+          || state.slipHeight !== 55
+          || state.columns !== 1
+          || state.start !== 1
+          || state.copies !== 25
+          || state.prefixEnabled
+          || state.prefix !== "A"
+          || state.qrEnabled
+          || state.qrContent
+          || state.qrGeneratedContent
+        );
+      }
+
       state.objects.push(createNumberObject());
       state.selectedId = "folio-main";
       for (const family of FONT_FAMILIES) {
@@ -978,6 +1201,12 @@
         "fondos/fondo-corazones.svg",
         "fondos/fondo-tropical.svg",
         "fondos/fondo-elegante.svg",
+        "fondos/fondo-rifa-solidaria.svg",
+        "fondos/fondo-cumpleanos-plantilla.svg",
+        "fondos/fondo-bingo.svg",
+        "fondos/fondo-evento-escolar.svg",
+        "fondos/fondo-comida-solidaria.svg",
+        "fondos/fondo-concierto.svg",
         "fondos/fondo-geometrico.svg"
       ]);
 
@@ -1139,6 +1368,7 @@
           ? `Seleccionado: ${selected.type === "shape" ? ({ line: "línea", arrow: "flecha", rect: "rectángulo", triangle: "triángulo", ellipse: "elipse" }[selected.shape] || "forma") : labels[selected.type]}`
           : "Ningún elemento seleccionado";
         renderSelectionControls();
+        schedulePersistence();
       }
 
       function selectObject(id) {
@@ -1249,6 +1479,7 @@
           }
         }
         paper.append(grid);
+        schedulePersistence();
       }
 
       function fillPreviewSlot(slot, sequenceNumber, slotWidthPx) {
@@ -1483,6 +1714,181 @@
         };
       }
 
+      function setAutosaveStatus(message, isError = false) {
+        $("autosave-status").textContent = message;
+        $("autosave-status").classList.toggle("error", isError);
+      }
+
+      function openDraftDatabase() {
+        if (!("indexedDB" in window)) return Promise.reject(new Error("Este navegador no permite guardar borradores localmente."));
+        if (!draftDatabasePromise) {
+          draftDatabasePromise = new Promise((resolve, reject) => {
+            const request = indexedDB.open(DRAFT_DATABASE, 1);
+            request.onupgradeneeded = () => {
+              request.result.createObjectStore(DRAFT_STORE);
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error || new Error("No se pudo abrir el almacenamiento local."));
+            request.onblocked = () => reject(new Error("El almacenamiento local está bloqueado por otra pestaña."));
+          });
+        }
+        return draftDatabasePromise;
+      }
+
+      async function readDraft() {
+        const database = await openDraftDatabase();
+        return new Promise((resolve, reject) => {
+          const transaction = database.transaction(DRAFT_STORE, "readonly");
+          const request = transaction.objectStore(DRAFT_STORE).get(DRAFT_KEY);
+          let result;
+          request.onsuccess = () => { result = request.result; };
+          request.onerror = () => reject(request.error || new Error("No se pudo leer el borrador local."));
+          transaction.oncomplete = () => resolve(result);
+          transaction.onerror = () => reject(transaction.error || new Error("No se pudo leer el borrador local."));
+          transaction.onabort = () => reject(transaction.error || new Error("Se canceló la lectura del borrador."));
+        });
+      }
+
+      async function writeDraft(contents) {
+        const database = await openDraftDatabase();
+        return new Promise((resolve, reject) => {
+          const transaction = database.transaction(DRAFT_STORE, "readwrite");
+          transaction.objectStore(DRAFT_STORE).put(contents, DRAFT_KEY);
+          transaction.oncomplete = resolve;
+          transaction.onerror = () => reject(transaction.error || new Error("No se pudo guardar el borrador local."));
+          transaction.onabort = () => reject(transaction.error || new Error("Se canceló el guardado del borrador."));
+        });
+      }
+
+      function commitHistoryChange() {
+        if (historyTimer) {
+          clearTimeout(historyTimer);
+          historyTimer = null;
+        }
+        const current = JSON.stringify(projectData());
+        if (historySnapshot === null) {
+          historySnapshot = current;
+        } else if (current !== historySnapshot) {
+          undoStack.push(historySnapshot);
+          if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
+          historySnapshot = current;
+          redoStack = [];
+        }
+        updateHistoryButtons();
+      }
+
+      function resetHistory() {
+        if (historyTimer) clearTimeout(historyTimer);
+        historyTimer = null;
+        undoStack = [];
+        redoStack = [];
+        historySnapshot = JSON.stringify(projectData());
+        updateHistoryButtons();
+      }
+
+      function removeTextObjects() {
+        const selected = selectedObject();
+        state.objects = state.objects.filter((obj) => obj.type !== "text" && obj.id !== "folio-copy");
+        const mainNumber = state.objects.find((obj) => obj.id === "folio-main");
+        if (mainNumber) {
+          mainNumber.x = 8;
+          mainNumber.y = 22;
+        }
+        if (selected && !state.objects.some((obj) => obj.id === selected.id)) state.selectedId = null;
+      }
+
+      function updateHistoryButtons() {
+        $("undo-button").disabled = historyBusy || undoStack.length === 0;
+        $("redo-button").disabled = historyBusy || redoStack.length === 0;
+      }
+
+      function schedulePersistence() {
+        if (historySnapshot !== null) {
+          if (historyTimer) clearTimeout(historyTimer);
+          historyTimer = setTimeout(commitHistoryChange, 600);
+        }
+        if (draftTimer) clearTimeout(draftTimer);
+        draftTimer = setTimeout(() => { void saveDraftNow(); }, 600);
+      }
+
+      let draftRevision = 0;
+      let pendingDraftWrite = Promise.resolve();
+      async function saveDraftNow() {
+        if (draftTimer) {
+          clearTimeout(draftTimer);
+          draftTimer = null;
+        }
+        const revision = ++draftRevision;
+        const contents = JSON.stringify(projectData());
+        setAutosaveStatus("Guardando borrador…");
+        pendingDraftWrite = pendingDraftWrite.catch(() => {}).then(() => writeDraft(contents));
+        try {
+          await pendingDraftWrite;
+          if (revision === draftRevision) setAutosaveStatus("Borrador guardado automáticamente.");
+        } catch (error) {
+          if (revision === draftRevision) {
+            setAutosaveStatus(error.message || "No se pudo guardar el borrador.", true);
+          }
+        }
+      }
+
+      async function restoreHistorySnapshot(snapshot, successMessage) {
+        const previousSnapshot = historySnapshot;
+        try {
+          await loadProject(JSON.parse(snapshot), { resetHistory: false, statusMessage: successMessage });
+          historySnapshot = JSON.stringify(projectData());
+        } catch (error) {
+          historySnapshot = previousSnapshot;
+          throw error;
+        }
+      }
+
+      async function undo() {
+        if (historyBusy) return;
+        commitHistoryChange();
+        if (!undoStack.length) return;
+        historyBusy = true;
+        const previousSnapshot = historySnapshot;
+        const target = undoStack.pop();
+        redoStack.push(previousSnapshot);
+        historySnapshot = target;
+        updateHistoryButtons();
+        try {
+          await restoreHistorySnapshot(target, "Cambio deshecho.");
+        } catch (error) {
+          redoStack.pop();
+          undoStack.push(target);
+          historySnapshot = previousSnapshot;
+          setStatus(error.message || "No se pudo deshacer el cambio.", true);
+        } finally {
+          historyBusy = false;
+          updateHistoryButtons();
+        }
+      }
+
+      async function redo() {
+        if (historyBusy) return;
+        commitHistoryChange();
+        if (!redoStack.length) return;
+        historyBusy = true;
+        const previousSnapshot = historySnapshot;
+        const target = redoStack.pop();
+        undoStack.push(previousSnapshot);
+        historySnapshot = target;
+        updateHistoryButtons();
+        try {
+          await restoreHistorySnapshot(target, "Cambio rehecho.");
+        } catch (error) {
+          undoStack.pop();
+          redoStack.push(target);
+          historySnapshot = previousSnapshot;
+          setStatus(error.message || "No se pudo rehacer el cambio.", true);
+        } finally {
+          historyBusy = false;
+          updateHistoryButtons();
+        }
+      }
+
       async function saveProject() {
         const contents = JSON.stringify(projectData(), null, 2);
         if (typeof window.showSaveFilePicker === "function") {
@@ -1516,7 +1922,7 @@
         setStatus("Este navegador no permite elegir dónde guardar; se descargó talonario.json.");
       }
 
-      async function loadProject(data) {
+      async function loadProject(data, { resetHistory: shouldResetHistory = false, statusMessage = "Proyecto abierto correctamente." } = {}) {
         if (!data || data.format !== "talonario-web" || data.version !== 1 || !Array.isArray(data.objects)) {
           throw new Error("El archivo no es un proyecto compatible de Talonario.");
         }
@@ -1608,7 +2014,8 @@
         state.selectedId = state.objects[0]?.id || null;
         renderedSelectionId = null;
         renderAll();
-        setStatus("Proyecto abierto correctamente.");
+        if (shouldResetHistory) resetHistory();
+        setStatus(statusMessage);
       }
 
       function slipContentHtml(sequenceNumber, continuationRow = false) {
@@ -1727,17 +2134,19 @@
         if (preset === WHITE_BACKGROUND) {
           state.background = WHITE_BACKGROUND;
           state.backgroundName = "Fondo en blanco";
+          removeTextObjects();
           renderObjects();
           renderSheetPreview();
-          setStatus("Fondo en blanco seleccionado.");
+          setStatus("Fondo en blanco seleccionado. Se quitaron los textos del diseño.");
           return;
         }
         if (!builtInBackgrounds.has(preset)) return;
         state.background = preset;
         state.backgroundName = preset.split("/").pop();
+        removeTextObjects();
         renderObjects();
         renderSheetPreview();
-        setStatus(`Fondo cargado: ${state.backgroundName}`);
+        setStatus(`Fondo cargado: ${state.backgroundName}. Se quitaron los textos del diseño.`);
       });
 
       $("use-image-ratio").addEventListener("click", () => {
@@ -1756,6 +2165,46 @@
       });
       $("add-text").addEventListener("click", addTextObject);
       $("add-image").addEventListener("click", () => $("overlay-file").click());
+      $("open-templates").addEventListener("click", () => $("template-dialog").showModal());
+      $("close-templates").addEventListener("click", () => $("template-dialog").close());
+      $("template-dialog").addEventListener("click", (event) => {
+        if (event.target === $("template-dialog")) $("template-dialog").close();
+      });
+      document.querySelectorAll("[data-template]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const template = EXAMPLE_TEMPLATES[button.dataset.template];
+          if (!template) return;
+          if (hasExistingProjectContent()
+              && !confirm(`¿Reemplazar el diseño actual por la plantilla ${template.name}? Podrás recuperarlo con Deshacer.`)) return;
+          applyExampleTemplate(template);
+        });
+      });
+
+      function applyExampleTemplate(template) {
+        state.background = template.background;
+        state.backgroundName = template.name;
+        state.aspect = 10 / 3;
+        state.standard = true;
+        state.slipWidth = 183.333;
+        state.slipHeight = 55;
+        state.columns = 1;
+        state.start = 1;
+        state.copies = 25;
+        state.prefixEnabled = false;
+        state.prefix = "A";
+        state.qrEnabled = false;
+        state.qrContent = "";
+        state.qrGeneratedContent = "";
+        state.qrSize = 18;
+        state.objects = createTemplateObjects(template);
+        state.selectedId = "folio-main";
+        state.nextId = 1;
+        renderedSelectionId = null;
+        renderAll();
+        commitHistoryChange();
+        setStatus(`Plantilla ${template.name} lista. Personaliza sus textos y folios antes de imprimir.`);
+        $("template-dialog").close();
+      }
       $("decoration-upload").addEventListener("click", () => $("decoration-file").click());
       $("decoration-file").addEventListener("change", (event) => {
         const file = event.target.files[0];
@@ -1826,6 +2275,7 @@
       });
       $("qr-content").addEventListener("input", (event) => {
         state.qrContent = event.target.value;
+        schedulePersistence();
       });
       $("qr-content").addEventListener("keydown", (event) => {
         if (event.key === "Enter") generateQr();
@@ -1900,6 +2350,8 @@
       $("move-forward").addEventListener("click", () => reorderSelectedObject("forward"));
       $("move-to-back").addEventListener("click", () => reorderSelectedObject("back"));
       $("move-to-front").addEventListener("click", () => reorderSelectedObject("front"));
+      $("undo-button").addEventListener("click", undo);
+      $("redo-button").addEventListener("click", redo);
       $("save-project").addEventListener("click", saveProject);
       $("open-project").addEventListener("click", () => $("project-file").click());
       $("project-file").addEventListener("change", async (event) => {
@@ -1914,7 +2366,7 @@
         }
       });
       $("new-project").addEventListener("click", () => {
-        if (!confirm("¿Crear un proyecto nuevo? Los cambios no guardados se perderán.")) return;
+        if (!confirm("¿Crear un proyecto nuevo? Podrás recuperar el proyecto anterior con Deshacer.")) return;
         state.background = "";
         state.backgroundName = "";
         state.aspect = 10 / 3;
@@ -1938,14 +2390,58 @@
         setStatus("Proyecto nuevo. Carga una imagen de fondo para comenzar.");
       });
       $("print-button").addEventListener("click", printProject);
+      window.addEventListener("keydown", (event) => {
+        if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+        const target = event.target;
+        if (target instanceof HTMLElement && target.matches("input, textarea, select, [contenteditable='true']")) return;
+        const key = event.key.toLowerCase();
+        if (key === "z" && event.shiftKey) {
+          event.preventDefault();
+          void redo();
+        } else if (key === "z") {
+          event.preventDefault();
+          void undo();
+        } else if (key === "y") {
+          event.preventDefault();
+          void redo();
+        }
+      });
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) void saveDraftNow();
+      });
       window.addEventListener("resize", () => {
         renderObjects();
         renderSheetPreview();
       });
       window.addEventListener("afterprint", () => $("print-root").replaceChildren());
 
-      renderAll();
-      syncPrintDimensions();
+      async function initialize() {
+        let draft;
+        try {
+          draft = await readDraft();
+        } catch (error) {
+          setAutosaveStatus(error.message || "No se pudo acceder al guardado automático.", true);
+        }
+        if (draft) {
+          try {
+            const data = typeof draft === "string" ? JSON.parse(draft) : draft;
+            await loadProject(data, {
+              resetHistory: true,
+              statusMessage: "Se recuperó el último borrador automáticamente."
+            });
+            setAutosaveStatus("Borrador recuperado automáticamente.");
+            return;
+          } catch (error) {
+            setStatus(error.message || "No se pudo recuperar el borrador.", true);
+            setAutosaveStatus("El borrador guardado no se pudo abrir.", true);
+          }
+        }
+        renderAll();
+        syncPrintDimensions();
+        resetHistory();
+      }
+
+      void initialize();
     })();
   </script>
 </body>
