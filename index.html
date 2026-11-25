@@ -492,6 +492,7 @@
     <nav class="top-actions" aria-label="Acciones del proyecto">
       <button id="new-project">Nuevo</button>
       <button id="open-project">Abrir proyecto</button>
+      <button id="recover-draft" type="button">Recuperar borrador</button>
       <button id="save-project">Guardar proyecto</button>
       <button id="open-templates" type="button">Plantillas</button>
       <button id="undo-button" type="button" title="Deshacer (Ctrl+Z)" disabled>Deshacer</button>
@@ -604,7 +605,7 @@
         <div><h1>Diseño del talón</h1><p>Prepara una plantilla y genera folios consecutivos listos para imprimir.</p></div>
         <div>
           <div id="status" class="status" role="status">Carga una imagen de fondo para comenzar.</div>
-          <div id="autosave-status" class="autosave-status" role="status">Guardado automático listo.</div>
+          <div id="autosave-status" class="autosave-status" role="status">Recupera el borrador anterior antes de editar el nuevo talonario.</div>
         </div>
       </div>
       <div class="workspace-layout">
@@ -1017,6 +1018,7 @@
       let historyTimer = null;
       let draftTimer = null;
       let draftDatabasePromise = null;
+      let preservePreviousDraft = true;
       let historyBusy = false;
 
       function createNumberObject() {
@@ -1967,6 +1969,8 @@
           clearTimeout(draftTimer);
           draftTimer = null;
         }
+        if (preservePreviousDraft && !hasExistingProjectContent()) return;
+        preservePreviousDraft = false;
         const revision = ++draftRevision;
         const contents = JSON.stringify(projectData());
         setAutosaveStatus("Guardando borrador…");
@@ -2774,33 +2778,41 @@
       });
       window.addEventListener("afterprint", () => $("print-root").replaceChildren());
 
-      async function initialize() {
-        let draft;
+      $("recover-draft").addEventListener("click", async () => {
+        if (hasExistingProjectContent()
+            && !confirm("¿Reemplazar el diseño actual por el borrador guardado?")) return;
+        if (draftTimer) {
+          clearTimeout(draftTimer);
+          draftTimer = null;
+        }
         try {
-          draft = await readDraft();
-        } catch (error) {
-          setAutosaveStatus(error.message || "No se pudo acceder al guardado automático.", true);
-        }
-        if (draft) {
-          try {
-            const data = typeof draft === "string" ? JSON.parse(draft) : draft;
-            await loadProject(data, {
-              resetHistory: true,
-              statusMessage: "Se recuperó el último borrador automáticamente."
-            });
-            setAutosaveStatus("Borrador recuperado automáticamente.");
+          await pendingDraftWrite;
+          const draft = await readDraft();
+          if (!draft) {
+            setStatus("No hay ningún borrador guardado para recuperar.", true);
             return;
-          } catch (error) {
-            setStatus(error.message || "No se pudo recuperar el borrador.", true);
-            setAutosaveStatus("El borrador guardado no se pudo abrir.", true);
           }
+          const data = typeof draft === "string" ? JSON.parse(draft) : draft;
+          await loadProject(data, {
+            resetHistory: true,
+            statusMessage: "Borrador recuperado correctamente."
+          });
+          preservePreviousDraft = false;
+          setAutosaveStatus("Borrador recuperado.");
+        } catch (error) {
+          setStatus(error.message || "No se pudo recuperar el borrador.", true);
+        } finally {
+          if (hasExistingProjectContent()) schedulePersistence();
         }
+      });
+
+      function initialize() {
         renderAll();
         syncPrintDimensions();
         resetHistory();
       }
 
-      void initialize();
+      initialize();
     })();
   </script>
 </body>
