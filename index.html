@@ -393,7 +393,7 @@
     }
     .decor-item:hover { transform: translateY(-1px); border-color: #9dc9b8; background: #f2faf6; }
     .decor-item img { width: 43px; height: 43px; object-fit: contain; }
-    .decor-upload { width: 100%; margin-top: 11px; }
+    .decor-search, .decor-upload { width: 100%; margin-top: 11px; }
     .decor-hint { margin: 9px 0 0; color: #8490a2; font-size: 10px; line-height: 1.45; }
 
     #print-root { display: none; }
@@ -688,6 +688,7 @@
             <label class="field"><span>Columnas por hoja A4</span>
               <select id="columns"><option value="1">1 columna</option><option value="2">2 columnas</option></select>
             </label>
+            <p class="decor-hint">En tamaño personalizado se mantiene la proporción 183,3 × 55 mm.</p>
             <div class="capacity" id="capacity"></div>
           </section>
           </div>
@@ -711,6 +712,7 @@
             </select>
           </label>
           <div id="decoration-grid" class="decor-grid"></div>
+          <button class="btn decor-search" id="search-web-decorations" type="button">🔎 Buscar decoración en la web</button>
           <button class="btn decor-upload" id="decoration-upload" type="button">＋ Subir imagen propia</button>
           <p class="decor-hint">Haz clic en una decoración para agregarla; luego arrástrala para ubicarla y usa el tirador para ajustar su tamaño.</p>
         </aside>
@@ -756,13 +758,13 @@
     <div class="template-dialog-head">
       <div>
         <h2 id="web-image-title">Buscar imágenes en Wikimedia Commons</h2>
-        <p>La búsqueda se envía a Wikimedia Commons. Revisa la licencia y atribución en la ficha de cada imagen antes de usarla.</p>
+        <p id="web-image-description">La búsqueda se envía a Wikimedia Commons. Revisa la licencia y atribución en la ficha de cada imagen antes de usarla.</p>
       </div>
       <button id="close-web-images" class="template-dialog-close" type="button" aria-label="Cerrar búsqueda de imágenes">×</button>
     </div>
     <form id="web-image-form" class="web-image-search">
       <label class="field" for="web-image-query">
-        <span>¿Qué imagen buscas?</span>
+        <span id="web-image-query-label">¿Qué imagen buscas?</span>
         <input id="web-image-query" type="search" required maxlength="200" placeholder="Por ejemplo, flores">
       </label>
       <button class="btn btn-green" type="submit">Buscar</button>
@@ -1603,8 +1605,8 @@
         grid.className = "paper-grid";
         paper.append(grid);
         if (plan.perPage) {
-          const gap = state.columns === 2 ? 2 : 0;
-          const slotWidth = (100 - gap * (state.columns - 1)) / state.columns;
+          const gap = state.columns === 2 ? 4 / 183.334 * 100 : 0;
+          const slotWidth = state.slipWidth / 183.334 * 100;
           grid.style.gridTemplateColumns = `repeat(${state.columns}, ${slotWidth}%)`;
           grid.style.columnGap = `${gap}%`;
           grid.style.height = `${(state.standard ? 275 : 267) / 297 * 100}%`;
@@ -2337,24 +2339,70 @@
       $("add-image").addEventListener("click", () => $("overlay-file").click());
       let webImageRequest = null;
       let webImageTarget = "overlay";
+      const decorationSearchTranslations = {
+        animales: "animals", arcoiris: "rainbow", banderines: "bunting", bicicleta: "bicycle",
+        campana: "bell", calabaza: "pumpkin", carita: "smiley", cinta: "ribbon",
+        cohete: "rocket", corazon: "heart", corazones: "hearts", dinosaurio: "dinosaur",
+        deportes: "sports", estrella: "star", estrellas: "stars", estrellitas: "stars",
+        flor: "flower", flores: "flowers", gatito: "kitten", gatita: "kitten", gato: "cat",
+        globo: "balloon", guitarra: "guitar", hoja: "leaf", hojas: "leaves", lapiz: "pencil",
+        libro: "book", luna: "moon", manzana: "apple", mariposa: "butterfly",
+        mariposas: "butterflies", marco: "frame", marcos: "frames", medalla: "medal",
+        musica: "music", nube: "cloud", nubes: "clouds", pelota: "ball", pececito: "fish",
+        perrito: "puppy", perro: "dog", rompecabezas: "puzzle", rosa: "rose", sol: "sun",
+        taza: "cup", trebol: "clover", tijeras: "scissors", trofeo: "trophy",
+        regalo: "gift", regalos: "gifts"
+      };
+      function getDecorationSearchQuery(query) {
+        const normalized = query.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        const translated = normalized
+          .replace(/\bcopo de nieve\b/g, "snowflake")
+          .replace(/\bnota musical\b/g, "musical note")
+          .replace(/\bpieza de rompecabezas\b/g, "puzzle piece")
+          .replace(/\bcarita feliz\b/g, "smiley face")
+          .replace(/\barco iris\b/g, "rainbow")
+          .split(/\s+/)
+          .map((word) => decorationSearchTranslations[word] || word)
+          .join(" ");
+        return `${translated} clipart`;
+      }
       function openWebImageSearch(target) {
         webImageTarget = target;
+        const isDecorationSearch = target === "decoration";
         $("web-image-title").textContent = target === "background"
           ? "Buscar fondo en Wikimedia Commons"
+          : target === "decoration"
+            ? "Buscar decoraciones en Wikimedia Commons"
           : "Buscar imágenes en Wikimedia Commons";
+        $("web-image-description").textContent = isDecorationSearch
+          ? "Se traducen algunos motivos comunes al inglés y se añade «clipart» para priorizar ilustraciones decorativas. Revisa la licencia y atribución en la ficha antes de usarla."
+          : "La búsqueda se envía a Wikimedia Commons. Revisa la licencia y atribución en la ficha de cada imagen antes de usarla.";
+        $("web-image-query-label").textContent = isDecorationSearch
+          ? "¿Qué decoración buscas?"
+          : "¿Qué imagen buscas?";
+        $("web-image-query").placeholder = isDecorationSearch ? "Por ejemplo, mariposa" : "Por ejemplo, flores";
+        $("web-image-status").textContent = isDecorationSearch
+          ? "Busca una decoración y haz clic en ella para agregarla."
+          : "Busca una imagen y haz clic en ella para agregarla.";
         $("web-image-dialog").showModal();
       }
       $("search-web-images").addEventListener("click", () => openWebImageSearch("overlay"));
       $("search-web-background").addEventListener("click", () => openWebImageSearch("background"));
+      $("search-web-decorations").addEventListener("click", () => openWebImageSearch("decoration"));
       $("close-web-images").addEventListener("click", () => $("web-image-dialog").close());
       $("web-image-dialog").addEventListener("click", (event) => {
         if (event.target === $("web-image-dialog")) $("web-image-dialog").close();
       });
       $("web-image-dialog").addEventListener("close", () => {
         if (webImageRequest) webImageRequest.abort();
+        const isDecorationSearch = webImageTarget === "decoration";
         $("web-image-status").textContent = $("web-image-results").children.length
-          ? "Haz clic en una imagen para agregarla. Consulta su licencia en la ficha."
-          : "Busca una imagen y haz clic en ella para agregarla.";
+          ? isDecorationSearch
+            ? "Haz clic en una decoración para agregarla. Consulta su licencia en la ficha."
+            : "Haz clic en una imagen para agregarla. Consulta su licencia en la ficha."
+          : isDecorationSearch
+            ? "Busca una decoración y haz clic en ella para agregarla."
+            : "Busca una imagen y haz clic en ella para agregarla.";
       });
       $("web-image-form").addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -2367,9 +2415,13 @@
         const request = new AbortController();
         webImageRequest = request;
         $("web-image-results").replaceChildren();
-        $("web-image-status").textContent = "Buscando imágenes…";
+        $("web-image-status").textContent = webImageTarget === "decoration"
+          ? "Buscando decoraciones…"
+          : "Buscando imágenes…";
         const params = new URLSearchParams({
-          action: "query", generator: "search", gsrsearch: query, gsrnamespace: "6",
+          action: "query", generator: "search",
+          gsrsearch: webImageTarget === "decoration" ? getDecorationSearchQuery(query) : query,
+          gsrnamespace: "6",
           gsrlimit: "24", prop: "imageinfo", iiprop: "url|mime", iiurlwidth: "640",
           format: "json", origin: "*"
         });
@@ -2383,8 +2435,12 @@
             .sort((a, b) => a.index - b.index);
           if (request.signal.aborted) return;
           $("web-image-status").textContent = pages.length
-            ? "Haz clic en una imagen para agregarla. Consulta su licencia en la ficha."
-            : "No se encontraron imágenes compatibles. Prueba otra búsqueda.";
+            ? webImageTarget === "decoration"
+              ? "Haz clic en una decoración para agregarla. Consulta su licencia en la ficha."
+              : "Haz clic en una imagen para agregarla. Consulta su licencia en la ficha."
+            : webImageTarget === "decoration"
+              ? "No se encontraron decoraciones con ese término. Prueba otra búsqueda."
+              : "No se encontraron imágenes compatibles. Prueba otra búsqueda.";
           pages.forEach((page) => {
             const info = page.imageinfo[0];
             const name = page.title.replace(/^File:/, "");
@@ -2392,7 +2448,7 @@
             card.className = "web-image-card";
             const button = document.createElement("button");
             button.type = "button";
-            button.setAttribute("aria-label", `Agregar imagen: ${name}`);
+            button.setAttribute("aria-label", `Agregar ${webImageTarget === "decoration" ? "decoración" : "imagen"}: ${name}`);
             const image = document.createElement("img");
             image.src = info.thumburl || info.url;
             image.alt = "";
@@ -2585,23 +2641,33 @@
       $("custom-size").addEventListener("click", () => {
         state.standard = false;
         state.slipWidth = 60;
-        state.slipHeight = 40;
         state.columns = 1;
+        resizeCustomSlip("width", state.slipWidth);
         syncInputs(); syncPrintDimensions();
       });
+      function resizeCustomSlip(changedDimension, value) {
+        const ratio = 183.3 / 55;
+        const desiredWidth = changedDimension === "width"
+          ? safeNumber(value, state.slipWidth, 20, 180)
+          : safeNumber(value, state.slipHeight, 10, 267) * ratio;
+        const maxWidth = Math.min(180, Math.floor(((183.334 - 4 * (state.columns - 1)) / state.columns) * 10) / 10);
+        state.slipWidth = Math.min(maxWidth, Math.max(10 * ratio, desiredWidth));
+        state.slipHeight = state.slipWidth / ratio;
+      }
       $("slip-width").addEventListener("input", (event) => {
         state.standard = false;
-        state.slipWidth = safeNumber(event.target.value, 60, 20, 180);
+        resizeCustomSlip("width", event.target.value);
         syncInputs(); syncPrintDimensions();
       });
       $("slip-height").addEventListener("input", (event) => {
         state.standard = false;
-        state.slipHeight = safeNumber(event.target.value, 40, 10, 267);
+        resizeCustomSlip("height", event.target.value);
         syncInputs(); syncPrintDimensions();
       });
       $("columns").addEventListener("change", (event) => {
         state.standard = false;
         state.columns = Number(event.target.value) === 2 ? 2 : 1;
+        resizeCustomSlip("width", state.slipWidth);
         syncInputs(); syncPrintDimensions();
       });
       $("object-text").addEventListener("input", updateObjectFields);
