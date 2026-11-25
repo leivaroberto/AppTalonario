@@ -394,6 +394,7 @@
     .decor-item:hover { transform: translateY(-1px); border-color: #9dc9b8; background: #f2faf6; }
     .decor-item img { width: 43px; height: 43px; object-fit: contain; }
     .decor-search, .decor-upload { width: 100%; margin-top: 11px; }
+    .decor-upload { margin-bottom: 11px; }
     .decor-hint { margin: 9px 0 0; color: #8490a2; font-size: 10px; line-height: 1.45; }
 
     #print-root { display: none; }
@@ -696,6 +697,8 @@
         </div>
         <aside class="work-card decor-panel" aria-label="Biblioteca de decoraciones">
           <div class="card-head"><strong>Decoraciones</strong><span>Haz clic para agregar</span></div>
+          <button class="btn decor-search" id="search-web-decorations" type="button">🔎 Buscar decoración en la web</button>
+          <button class="btn decor-upload" id="decoration-upload" type="button">＋ Subir imagen propia</button>
           <label class="field decor-filter">
             <span>Tipo de decoración</span>
             <select id="decoration-category">
@@ -713,8 +716,6 @@
             </select>
           </label>
           <div id="decoration-grid" class="decor-grid"></div>
-          <button class="btn decor-search" id="search-web-decorations" type="button">🔎 Buscar decoración en la web</button>
-          <button class="btn decor-upload" id="decoration-upload" type="button">＋ Subir imagen propia</button>
           <p class="decor-hint">Haz clic en una decoración para agregarla; luego arrástrala para ubicarla y usa el tirador para ajustar su tamaño.</p>
         </aside>
       </div>
