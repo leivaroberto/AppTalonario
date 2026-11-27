@@ -305,6 +305,7 @@
     .artboard.can-pan-background { cursor: grab; }
     .artboard.is-panning-background { cursor: grabbing; }
     .artboard-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; user-select: none; }
+    .crop-guide { position: absolute; z-index: 10001; border: 1px dashed #c24f35; box-shadow: 0 0 0 2000px #17243a88; pointer-events: none; }
     .empty-board {
       position: absolute;
       inset: 0;
@@ -358,7 +359,8 @@
       box-shadow: 0 3px 11px #26334b16;
     }
     .paper-grid { position: absolute; left: 6.35%; top: 5.05%; width: 87.3%; height: 89.9%; display: grid; align-content: start; justify-content: center; overflow: hidden; }
-    .paper-slot { position: relative; overflow: visible; border: 1px dashed #bcc6d4; background: #fafbfd; }
+    .paper-slot { position: relative; overflow: hidden; outline: 1px dashed #bcc6d4; background: #fafbfd; }
+    .slip-design { position: absolute; }
     .paper-slot .slip-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .paper-slot-object { position: absolute; overflow: hidden; }
     .paper-slot-object img { width: 100%; height: 100%; object-fit: fill; }
@@ -453,6 +455,8 @@
       .print-page:last-child { page-break-after: auto; break-after: auto; }
       .print-grid { display: grid; align-content: start; justify-content: center; }
       .print-slip { position: relative; overflow: visible; box-sizing: border-box; background: #fff; }
+      .print-clip { position: absolute; inset: 0; overflow: hidden; }
+      .print-design { position: absolute; }
       .print-slip-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
       .print-object { position: absolute; overflow: hidden; }
       .print-object img { display: block; width: 100%; height: 100%; object-fit: fill; }
@@ -596,7 +600,7 @@
         <label class="field"><span>Texto o URL del QR</span><input id="qr-content" type="text" placeholder="https://ejemplo.com"></label>
         <button class="btn btn-green" id="generate-qr" type="button">Generar / actualizar QR</button>
         <label class="field"><span>Tamaño <output id="qr-size-label">18%</output></span><input id="qr-size" type="range" min="8" max="40" value="18"></label>
-        <div class="note">El QR se genera al pulsar el botón o Enter. Se usa api.qrserver.com, igual que en tu rutina VB.NET, y se envía el texto ingresado.</div>
+        <div class="note"><strong>Privacidad:</strong> al generar, mostrar o imprimir el QR, su texto o URL se envía a api.qrserver.com. No incluyas información sensible. Se necesita conexión a internet.</div>
       </section>
 
     </aside>
@@ -607,6 +611,7 @@
         <div>
           <div id="status" class="status" role="status">Carga una imagen de fondo para comenzar.</div>
           <div id="autosave-status" class="autosave-status" role="status">Recupera el borrador anterior antes de editar el nuevo talonario.</div>
+          <button id="replace-draft" class="btn hidden" type="button">Permitir reemplazar borrador</button>
         </div>
       </div>
       <div class="workspace-layout">
@@ -618,9 +623,11 @@
                 <img id="background-preview" class="artboard-bg hidden" alt="">
                 <div id="empty-board" class="empty-board"><b>Tu talonario comienza aquí</b><span>Selecciona una imagen o un fondo en blanco desde el panel</span></div>
                 <div id="objects-layer"></div>
+                <div id="crop-guide" class="crop-guide hidden" aria-hidden="true"></div>
               </div>
             </div>
             <div class="canvas-foot"><span>Los elementos se ajustan proporcionalmente al tamaño de impresión.</span><span id="selected-label">Ningún elemento seleccionado</span></div>
+            <p id="crop-warning" class="note hidden" role="status">Solo se imprimirá el área dentro del borde punteado. El resto del diseño se recortará sin deformarse.</p>
             <section class="selected-editor" aria-label="Edición del elemento seleccionado">
               <h2 class="panel-title">Elemento seleccionado</h2>
               <div id="no-selection" class="selected-empty">Selecciona un texto, folio, QR, imagen o forma en el área de diseño para editarlo.</div>
@@ -691,6 +698,7 @@
               <select id="columns"><option value="1">1 columna</option><option value="2">2 columnas</option></select>
             </label>
             <p class="decor-hint">En tamaño personalizado se mantiene la proporción 183,3 × 55 mm.</p>
+            <p id="size-adjustment" class="note hidden" role="status"></p>
             <div class="capacity" id="capacity"></div>
           </section>
           </div>
@@ -1020,6 +1028,9 @@
       let draftTimer = null;
       let draftDatabasePromise = null;
       let preservePreviousDraft = true;
+      let draftSavePaused = false;
+      let draftProtectionPromise = null;
+      let draftProtectionGeneration = 0;
       let historyBusy = false;
 
       function createNumberObject() {
@@ -1295,6 +1306,17 @@
         return { rows, perPage, fitsWidth };
       }
 
+      function designFrame() {
+        const slipRatio = state.slipWidth / state.slipHeight;
+        const width = Math.max(1, state.aspect / slipRatio) * 100;
+        const height = Math.max(1, slipRatio / state.aspect) * 100;
+        return { width, height, left: (100 - width) / 2, top: (100 - height) / 2 };
+      }
+
+      function frameStyle(frame) {
+        return `left:${frame.left}%;top:${frame.top}%;width:${frame.width}%;height:${frame.height}%`;
+      }
+
       function syncInputs() {
         const uploadedBackground = state.background
           && state.background !== WHITE_BACKGROUND
@@ -1311,8 +1333,8 @@
         $("background-preset").value = state.background === WHITE_BACKGROUND || builtInBackgrounds.has(state.background) ? state.background : "";
         $("qr-size").value = state.qrSize;
         $("qr-size-label").value = `${state.qrSize}%`;
-        $("slip-width").value = Number(state.slipWidth.toFixed(1));
-        $("slip-height").value = Number(state.slipHeight.toFixed(1));
+        if (document.activeElement !== $("slip-width")) $("slip-width").value = Number(state.slipWidth.toFixed(1));
+        if (document.activeElement !== $("slip-height")) $("slip-height").value = Number(state.slipHeight.toFixed(1));
         $("columns").value = String(state.columns);
         $("standard-size").classList.toggle("active", state.standard);
         $("custom-size").classList.toggle("active", !state.standard);
@@ -1446,39 +1468,6 @@
         };
       }
 
-      function backgroundPositionForSize(width, height) {
-        const image = $("background-preview");
-        const board = $("artboard");
-        const sourceWidth = board.clientWidth;
-        const sourceHeight = board.clientHeight;
-        if (!width || !height || !sourceWidth || !sourceHeight || !image.naturalWidth || !image.naturalHeight) {
-          return `${state.backgroundPositionX}% ${state.backgroundPositionY}%`;
-        }
-
-        const sourceScale = Math.max(sourceWidth / image.naturalWidth, sourceHeight / image.naturalHeight);
-        const renderedSourceWidth = image.naturalWidth * sourceScale;
-        const renderedSourceHeight = image.naturalHeight * sourceScale;
-        const sourceOverflowX = renderedSourceWidth - sourceWidth;
-        const sourceOverflowY = renderedSourceHeight - sourceHeight;
-        const focalX = sourceOverflowX > 0
-          ? 0.5 + (state.backgroundPositionX / 100 - 0.5) * sourceOverflowX / renderedSourceWidth
-          : 0.5;
-        const focalY = sourceOverflowY > 0
-          ? 0.5 + (state.backgroundPositionY / 100 - 0.5) * sourceOverflowY / renderedSourceHeight
-          : 0.5;
-
-        const targetScale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
-        const targetOverflowX = image.naturalWidth * targetScale - width;
-        const targetOverflowY = image.naturalHeight * targetScale - height;
-        const targetPositionX = targetOverflowX > 0
-          ? (0.5 + (focalX - 0.5) * image.naturalWidth * targetScale / targetOverflowX) * 100
-          : 50;
-        const targetPositionY = targetOverflowY > 0
-          ? (0.5 + (focalY - 0.5) * image.naturalHeight * targetScale / targetOverflowY) * 100
-          : 50;
-        return `${safeNumber(targetPositionX, 50, 0, 100)}% ${safeNumber(targetPositionY, 50, 0, 100)}%`;
-      }
-
       function beginBackgroundPointer(event) {
         if (event.button !== 0 || !state.background || state.background === WHITE_BACKGROUND) return;
         const board = $("artboard");
@@ -1592,6 +1581,15 @@
 
       function renderSheetPreview() {
         const plan = currentPlan();
+        const frame = designFrame();
+        const cropped = frame.width > 100.1 || frame.height > 100.1;
+        const guide = $("crop-guide");
+        guide.classList.toggle("hidden", !cropped);
+        $("crop-warning").classList.toggle("hidden", !cropped);
+        guide.style.width = `${10000 / frame.width}%`;
+        guide.style.height = `${10000 / frame.height}%`;
+        guide.style.left = `${(100 - 10000 / frame.width) / 2}%`;
+        guide.style.top = `${(100 - 10000 / frame.height) / 2}%`;
         const count = Math.max(1, state.copies);
         const pages = plan.perPage ? Math.ceil(count / plan.perPage) : 0;
         $("page-count").textContent = `${pages || "—"} ${pages === 1 ? "página" : "páginas"}`;
@@ -1621,20 +1619,26 @@
             slot.style.width = "100%";
             if (state.background === WHITE_BACKGROUND) slot.style.background = "#fff";
             grid.append(slot);
-            fillPreviewSlot(slot, state.start + i, slot.clientWidth, slot.clientHeight);
+            fillPreviewSlot(slot, state.start + i, slot.clientWidth);
           }
         }
         schedulePersistence();
       }
 
-      function fillPreviewSlot(slot, sequenceNumber, slotWidthPx, slotHeightPx) {
+      function fillPreviewSlot(slot, sequenceNumber, slotWidthPx) {
+        const frame = designFrame();
+        const design = document.createElement("div");
+        design.className = "slip-design";
+        design.style.cssText = frameStyle(frame);
+        slot.append(design);
+        const designWidthPx = slotWidthPx * frame.width / 100;
         if (state.background && state.background !== WHITE_BACKGROUND) {
           const bg = document.createElement("img");
           bg.className = "slip-bg";
           bg.src = state.background;
           bg.alt = "";
-          bg.style.objectPosition = backgroundPositionForSize(slotWidthPx, slotHeightPx);
-          slot.append(bg);
+          bg.style.objectPosition = `${state.backgroundPositionX}% ${state.backgroundPositionY}%`;
+          design.append(bg);
         }
         const sorted = state.objects.filter((obj) => obj.visible !== false).slice().sort((a, b) => (a.z || 0) - (b.z || 0));
         for (const obj of sorted) {
@@ -1649,20 +1653,20 @@
             item.textContent = obj.type === "number" ? folio(sequenceNumber) : obj.text || "";
             item.style.whiteSpace = "pre";
             item.style.fontFamily = FONT_FAMILIES.includes(obj.fontFamily) ? `"${obj.fontFamily}"` : "Arial";
-            item.style.fontSize = `${(obj.fontSize || 32) * slotWidthPx / 1000}px`;
+            item.style.fontSize = `${(obj.fontSize || 32) * designWidthPx / 1000}px`;
             item.style.fontWeight = obj.bold ? "700" : "400";
             item.style.fontStyle = obj.italic ? "italic" : "normal";
             item.style.color = obj.color || "#17243a";
           } else {
             if (obj.type === "qr") {
-              const qrSizePx = state.qrSize * slotWidthPx / 100;
+              const qrSizePx = state.qrSize * designWidthPx / 100;
               item.style.width = `${qrSizePx}px`;
               item.style.height = `${qrSizePx}px`;
             } else {
               item.style.width = `${obj.w}%`;
               item.style.height = `${obj.h}%`;
             }
-            if (obj.type === "shape") item.innerHTML = shapeSvgMarkup(obj, slotWidthPx / 1000);
+            if (obj.type === "shape") item.innerHTML = shapeSvgMarkup(obj, designWidthPx / 1000);
             else {
               const image = document.createElement("img");
               image.alt = "";
@@ -1672,7 +1676,7 @@
               item.append(image);
             }
           }
-          slot.append(item);
+          design.append(item);
         }
       }
 
@@ -1965,13 +1969,49 @@
 
       let draftRevision = 0;
       let pendingDraftWrite = Promise.resolve();
+      async function allowDraftReplacement() {
+        if (!preservePreviousDraft) return true;
+        if (draftSavePaused) return false;
+        if (!draftProtectionPromise) {
+          const generation = draftProtectionGeneration;
+          draftProtectionPromise = (async () => {
+            const previousDraft = await readDraft();
+            if (generation !== draftProtectionGeneration || !preservePreviousDraft) return false;
+            if (previousDraft && document.hidden) {
+              setAutosaveStatus("El borrador anterior está protegido; vuelve a la página para decidir si lo reemplazas.");
+              return false;
+            }
+            if (previousDraft && !confirm("Ya existe un borrador anterior. ¿Deseas reemplazarlo con el diseño actual? Si cancelas, el guardado automático quedará pausado y podrás recuperarlo.")) {
+              draftSavePaused = true;
+              $("replace-draft").classList.remove("hidden");
+              setAutosaveStatus("Borrador anterior protegido. El diseño actual no se guarda automáticamente; guárdalo como proyecto.");
+              return false;
+            }
+            preservePreviousDraft = false;
+            return true;
+          })();
+        }
+        const check = draftProtectionPromise;
+        try {
+          return await check;
+        } finally {
+          if (draftProtectionPromise === check) draftProtectionPromise = null;
+        }
+      }
+
       async function saveDraftNow() {
         if (draftTimer) {
           clearTimeout(draftTimer);
           draftTimer = null;
         }
         if (preservePreviousDraft && !hasExistingProjectContent()) return;
-        preservePreviousDraft = false;
+        try {
+          if (!await allowDraftReplacement()) return;
+        } catch (error) {
+          setAutosaveStatus(`No se pudo comprobar el borrador anterior; el guardado automático está detenido. ${error.message || ""}`, true);
+          return;
+        }
+        if (preservePreviousDraft) return;
         const revision = ++draftRevision;
         const contents = JSON.stringify(projectData());
         setAutosaveStatus("Guardando borrador…");
@@ -2172,6 +2212,7 @@
         state.nextId = 1;
         state.selectedId = state.objects[0]?.id || null;
         renderedSelectionId = null;
+        showSizeAdjustment(false);
         renderAll();
         if (shouldResetHistory) resetHistory();
         setStatus(start !== requestedStart
@@ -2180,6 +2221,8 @@
       }
 
       function slipContentHtml(sequenceNumber, continuationRow = false) {
+        const frame = designFrame();
+        const designWidth = state.slipWidth * frame.width / 100;
         const objects = state.objects
           .filter((obj) => obj.visible !== false && (obj.type !== "qr" || (state.qrEnabled && state.qrGeneratedContent)))
           .slice().sort((a, b) => (a.z || 0) - (b.z || 0));
@@ -2187,26 +2230,26 @@
           const base = `left:${obj.x}%;top:${obj.y}%;z-index:${obj.z || 1};transform:rotate(${safeNumber(obj.rotation, 0, -180, 180)}deg);transform-origin:center center;`;
           if (obj.type === "text" || obj.type === "number") {
             const value = obj.type === "number" ? folio(sequenceNumber) : obj.text || "";
-            const fontSize = (obj.fontSize || 32) * state.slipWidth / 1000 * 96 / 25.4;
+            const fontSize = (obj.fontSize || 32) * designWidth / 1000 * 96 / 25.4;
             const fontFamily = FONT_FAMILIES.includes(obj.fontFamily) ? obj.fontFamily : "Arial";
             const color = /^#[0-9a-f]{6}$/i.test(obj.color || "") ? obj.color : "#17243a";
             return `<div class="print-object" style="${base}white-space:pre;font-family:'${fontFamily}';font-size:${fontSize}px;font-weight:${obj.bold ? 700 : 400};font-style:${obj.italic ? "italic" : "normal"};color:${color};line-height:1.12">${escapeHtml(value)}</div>`;
           }
           if (obj.type === "shape") {
-            const printScale = state.slipWidth * 96 / 25.4 / 1000;
+            const printScale = designWidth * 96 / 25.4 / 1000;
             return `<div class="print-object" style="${base}width:${obj.w}%;height:${obj.h}%">${shapeSvgMarkup(obj, printScale)}</div>`;
           }
           const width = obj.type === "qr" ? state.qrSize : obj.w;
-          const height = obj.type === "qr" ? width * state.slipWidth / state.slipHeight : obj.h;
+          const height = obj.type === "qr" ? width * state.aspect : obj.h;
           const src = obj.type === "qr"
             ? `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(state.qrGeneratedContent)}`
             : obj.src;
           return `<div class="print-object" style="${base}width:${width}%;height:${height}%"><img src="${src}" alt=""></div>`;
         }).join("");
         const bg = state.background && state.background !== WHITE_BACKGROUND
-          ? `<img class="print-slip-bg" src="${state.background}" alt="" style="object-position:${backgroundPositionForSize(state.slipWidth, state.slipHeight)}">`
+          ? `<img class="print-slip-bg" src="${state.background}" alt="" style="object-position:${state.backgroundPositionX}% ${state.backgroundPositionY}%">`
           : "";
-        return `${bg}${content}<span class="cut-marks${continuationRow ? " continuation-row" : ""}"></span>`;
+        return `<div class="print-clip"><div class="print-design" style="${frameStyle(frame)}">${bg}${content}</div></div><span class="cut-marks${continuationRow ? " continuation-row" : ""}"></span>`;
       }
 
       function buildPrintDocument() {
@@ -2332,12 +2375,14 @@
         if (img.naturalWidth && img.naturalHeight) {
           state.aspect = img.naturalWidth / img.naturalHeight;
           applyArtboardRatio();
+          renderSheetPreview();
           setStatus("Proporción del área de diseño ajustada a la imagen.");
         }
       });
       $("reset-ratio").addEventListener("click", () => {
         state.aspect = 10 / 3;
         applyArtboardRatio();
+        renderSheetPreview();
         setStatus("Proporción del área de diseño: 10:3.");
       });
       $("add-text").addEventListener("click", addTextObject);
@@ -2372,6 +2417,10 @@
         return `${translated} clipart`;
       }
       function openWebImageSearch(target) {
+        if (target !== webImageTarget) {
+          if (webImageRequest) webImageRequest.abort();
+          $("web-image-results").replaceChildren();
+        }
         webImageTarget = target;
         const isDecorationSearch = target === "decoration";
         $("web-image-title").textContent = target === "background"
@@ -2427,7 +2476,7 @@
           action: "query", generator: "search",
           gsrsearch: webImageTarget === "decoration" ? getDecorationSearchQuery(query) : query,
           gsrnamespace: "6",
-          gsrlimit: "24", prop: "imageinfo", iiprop: "url|mime", iiurlwidth: "640",
+          gsrlimit: "24", prop: "imageinfo", iiprop: "url|mime|extmetadata", iiextmetadatafilter: "LicenseShortName", iiurlwidth: "640",
           format: "json", origin: "*"
         });
         try {
@@ -2495,7 +2544,13 @@
             link.target = "_blank";
             link.rel = "noopener noreferrer";
             link.textContent = "Ficha y licencia";
-            card.append(button, link);
+            const license = document.createElement("span");
+            const licenseName = info.extmetadata?.LicenseShortName?.value;
+            license.textContent = licenseName
+              ? `Licencia: ${new DOMParser().parseFromString(licenseName, "text/html").body.textContent.trim()}`
+              : "Licencia: consultar ficha";
+            license.title = license.textContent;
+            card.append(button, license, link);
             $("web-image-results").append(card);
           });
         } catch (error) {
@@ -2539,6 +2594,7 @@
         state.selectedId = "folio-main";
         state.nextId = 1;
         renderedSelectionId = null;
+        showSizeAdjustment(false);
         renderAll();
         commitHistoryChange();
         setStatus(`Plantilla ${template.name} lista. Personaliza sus textos y folios antes de imprimir.`);
@@ -2603,6 +2659,13 @@
       });
       $("copy-count").addEventListener("input", (event) => {
         state.copies = safeInteger(event.target.value, state.copies, 1, 5000);
+        const maxStart = maxStartingNumber(state.copies);
+        if (state.start > maxStart) {
+          state.start = maxStart;
+          $("start-number").value = state.start;
+          renderObjects();
+          setStatus("El número inicial se ajustó para evitar folios repetidos.");
+        }
         renderSheetPreview();
       });
       $("copy-count").addEventListener("change", () => { $("copy-count").value = state.copies; });
@@ -2641,6 +2704,7 @@
         state.slipWidth = 183.333;
         state.slipHeight = 55;
         state.columns = 1;
+        $("size-adjustment").classList.add("hidden");
         syncInputs(); syncPrintDimensions();
       });
       $("custom-size").addEventListener("click", () => {
@@ -2648,6 +2712,7 @@
         state.slipWidth = 60;
         state.columns = 1;
         resizeCustomSlip("width", state.slipWidth);
+        $("size-adjustment").classList.add("hidden");
         syncInputs(); syncPrintDimensions();
       });
       function resizeCustomSlip(changedDimension, value) {
@@ -2659,21 +2724,35 @@
         state.slipWidth = Math.min(maxWidth, Math.max(10 * ratio, desiredWidth));
         state.slipHeight = state.slipWidth / ratio;
       }
-      $("slip-width").addEventListener("input", (event) => {
-        state.standard = false;
-        resizeCustomSlip("width", event.target.value);
-        syncInputs(); syncPrintDimensions();
-      });
-      $("slip-height").addEventListener("input", (event) => {
-        state.standard = false;
-        resizeCustomSlip("height", event.target.value);
-        syncInputs(); syncPrintDimensions();
+      function showSizeAdjustment(adjusted) {
+        const note = $("size-adjustment");
+        note.classList.toggle("hidden", !adjusted);
+        note.textContent = adjusted
+          ? `Medidas ajustadas a ${state.slipWidth.toFixed(1)} × ${state.slipHeight.toFixed(1)} mm para respetar los límites y la distribución A4.`
+          : "";
+      }
+      [["slip-width", "width"], ["slip-height", "height"]].forEach(([id, dimension]) => {
+        const input = $(id);
+        input.addEventListener("input", () => {
+          if (!input.value || !Number.isFinite(Number(input.value)) || Number(input.value) <= 0) return;
+          state.standard = false;
+          resizeCustomSlip(dimension, input.value);
+          syncInputs(); syncPrintDimensions();
+        });
+        input.addEventListener("change", () => {
+          const requested = Number(input.value);
+          const actual = dimension === "width" ? state.slipWidth : state.slipHeight;
+          showSizeAdjustment(!input.value || !Number.isFinite(requested) || Math.abs(requested - actual) > 0.051);
+          input.value = Number(actual.toFixed(1));
+        });
       });
       $("columns").addEventListener("change", (event) => {
         state.standard = false;
         state.columns = Number(event.target.value) === 2 ? 2 : 1;
+        const previousWidth = state.slipWidth;
         resizeCustomSlip("width", state.slipWidth);
         syncInputs(); syncPrintDimensions();
+        showSizeAdjustment(state.slipWidth < previousWidth - 0.001);
       });
       $("object-text").addEventListener("input", updateObjectFields);
       $("object-font-size").addEventListener("input", updateObjectFields);
@@ -2750,6 +2829,7 @@
         state.selectedId = "folio-main";
         state.nextId = 1;
         renderedSelectionId = null;
+        showSizeAdjustment(false);
         renderAll();
         setStatus("Proyecto nuevo. Carga una imagen de fondo para comenzar.");
       });
@@ -2771,7 +2851,7 @@
         }
       });
       document.addEventListener("visibilitychange", () => {
-        if (document.hidden) void saveDraftNow();
+        if (document.hidden || (preservePreviousDraft && hasExistingProjectContent())) void saveDraftNow();
       });
       window.addEventListener("resize", () => {
         renderObjects();
@@ -2786,6 +2866,7 @@
           clearTimeout(draftTimer);
           draftTimer = null;
         }
+        draftProtectionGeneration += 1;
         try {
           await pendingDraftWrite;
           const draft = await readDraft();
@@ -2799,12 +2880,23 @@
             statusMessage: "Borrador recuperado correctamente."
           });
           preservePreviousDraft = false;
+          draftSavePaused = false;
+          $("replace-draft").classList.add("hidden");
           setAutosaveStatus("Borrador recuperado.");
         } catch (error) {
           setStatus(error.message || "No se pudo recuperar el borrador.", true);
         } finally {
           if (hasExistingProjectContent()) schedulePersistence();
         }
+      });
+
+      $("replace-draft").addEventListener("click", () => {
+        if (!confirm("¿Reemplazar el borrador anterior con el diseño actual?")) return;
+        draftProtectionGeneration += 1;
+        preservePreviousDraft = false;
+        draftSavePaused = false;
+        $("replace-draft").classList.add("hidden");
+        void saveDraftNow();
       });
 
       function initialize() {
